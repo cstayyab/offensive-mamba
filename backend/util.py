@@ -171,7 +171,7 @@ class Utilty:
         try:
             parsed = util.parse_url(url)
         except Exception as e:
-            self.util.print_exception(e, 'Parsed error : {}'.format(url))
+            self.print_exception(e, 'Parsed error : {}'.format(url))
         return parsed
 
     # Running spider.
