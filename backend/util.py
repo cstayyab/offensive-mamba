@@ -4,6 +4,7 @@ import string
 import random
 import codecs
 import json
+import re
 import urllib3
 import configparser
 from urllib3 import util
@@ -32,7 +33,7 @@ NONE = 'none'     # No label.
 
 
 # Utility class.
-class Utilty:
+class Utility:
     def __init__(self):
         # Read config.ini.
         full_path = os.path.dirname(os.path.abspath(__file__))
@@ -54,18 +55,18 @@ class Utilty:
         self.report_date_format = str(config['Report']['date_format'])
 
         # Spider setting value.
-        self.output_base_path = config['Spider']['output_base_path']
-        self.store_path = os.path.join(full_path, self.output_base_path)
-        if os.path.exists(self.store_path) is False:
-            os.mkdir(self.store_path)
-        self.output_filename = config['Spider']['output_filename']
-        self.spider_concurrent_reqs = config['Spider']['concurrent_reqs']
-        self.spider_depth_limit = config['Spider']['depth_limit']
-        self.spider_delay_time = config['Spider']['delay_time']
-        self.spider_time_out = config['Spider']['time_out']
-        self.spider_item_count = config['Spider']['item_count']
-        self.spider_page_count = config['Spider']['page_count']
-        self.spider_error_count = config['Spider']['error_count']
+        # self.output_base_path = config['Spider']['output_base_path']
+        # self.store_path = os.path.join(full_path, self.output_base_path)
+        # if os.path.exists(self.store_path) is False:
+        #     os.mkdir(self.store_path)
+        # self.output_filename = config['Spider']['output_filename']
+        # self.spider_concurrent_reqs = config['Spider']['concurrent_reqs']
+        # self.spider_depth_limit = config['Spider']['depth_limit']
+        # self.spider_delay_time = config['Spider']['delay_time']
+        # self.spider_time_out = config['Spider']['time_out']
+        # self.spider_item_count = config['Spider']['item_count']
+        # self.spider_page_count = config['Spider']['page_count']
+        # self.spider_error_count = config['Spider']['error_count']
 
     # Print metasploit's symbol.
     def print_message(self, type, message):
@@ -146,7 +147,7 @@ class Utilty:
                     self.print_message(OK, 'Port "{}" is web port. status={}'.format(port_num, res.status))
                     web_port_list.append([port_num, scheme])
                     break
-                except Exception as e:
+                except Exception:
                     self.print_message(WARNING, 'Port "{}" is not web port.'.format(port_num))
         return web_port_list
 
@@ -173,49 +174,55 @@ class Utilty:
         except Exception as e:
             self.print_exception(e, 'Parsed error : {}'.format(url))
         return parsed
+    def isValidIP(self, ipaddr: str):
+        regex = '''^(25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.( 
+            25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.( 
+            25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)\.( 
+            25[0-5]|2[0-4][0-9]|[0-1]?[0-9][0-9]?)'''
+        return re.search(regex, ipaddr)
 
     # Running spider.
-    def run_spider(self, target_ip, target_web, client):
-        # Execute crawling using Scrapy.
-        all_targets_log = []
-        for target_info in target_web:
-            target_url = target_info[1] + target_ip + ':' + target_info[0] + '/'
-            target_log = [target_url]
-            response_log = target_ip + '_' + target_info[0] + '.log'
-            now_time = self.get_current_date('%Y%m%d%H%M%S')
-            result_file = os.path.join(self.output_base_path, now_time + self.output_filename)
-            option = ' -a target_url=' + target_url + ' -a allow_domain=' + target_ip + \
-                     ' -a concurrent=' + self.spider_concurrent_reqs + ' -a depth_limit=' + self.spider_depth_limit + \
-                     ' -a delay=' + self.spider_delay_time + ' -a store_path=' + self.store_path + \
-                     ' -a response_log=' + response_log + ' -a msgrpc_host=' + client.host + \
-                     ' -a msgrpc_port=' + str(client.port) + ' -a msgrpc_token=' + client.token.decode('utf-8') + \
-                     ' -a msgrpc_console_id=' + client.console_id.decode('utf-8') + ' -o ' + result_file
-            close_opton = ' -s CLOSESPIDER_TIMEOUT=' + self.spider_time_out + \
-                          ' -s CLOSESPIDER_ITEMCOUNT=' + self.spider_item_count + \
-                          ' -s CLOSESPIDER_PAGECOUNT=' + self.spider_page_count + \
-                          ' -s CLOSESPIDER_ERRORCOUNT=' + self.spider_error_count + ' '
-            command = 'scrapy runspider' + close_opton + 'Spider.py' + option
-            proc = Popen(command, shell=True)
-            proc.wait()
+    # def run_spider(self, target_ip, target_web, client):
+    #     # Execute crawling using Scrapy.
+    #     all_targets_log = []
+    #     for target_info in target_web:
+    #         target_url = target_info[1] + target_ip + ':' + target_info[0] + '/'
+    #         target_log = [target_url]
+    #         response_log = target_ip + '_' + target_info[0] + '.log'
+    #         now_time = self.get_current_date('%Y%m%d%H%M%S')
+    #         result_file = os.path.join(self.output_base_path, now_time + self.output_filename)
+    #         option = ' -a target_url=' + target_url + ' -a allow_domain=' + target_ip + \
+    #                  ' -a concurrent=' + self.spider_concurrent_reqs + ' -a depth_limit=' + self.spider_depth_limit + \
+    #                  ' -a delay=' + self.spider_delay_time + ' -a store_path=' + self.store_path + \
+    #                  ' -a response_log=' + response_log + ' -a msgrpc_host=' + client.host + \
+    #                  ' -a msgrpc_port=' + str(client.port) + ' -a msgrpc_token=' + client.token.decode('utf-8') + \
+    #                  ' -a msgrpc_console_id=' + client.console_id.decode('utf-8') + ' -o ' + result_file
+    #         close_opton = ' -s CLOSESPIDER_TIMEOUT=' + self.spider_time_out + \
+    #                       ' -s CLOSESPIDER_ITEMCOUNT=' + self.spider_item_count + \
+    #                       ' -s CLOSESPIDER_PAGECOUNT=' + self.spider_page_count + \
+    #                       ' -s CLOSESPIDER_ERRORCOUNT=' + self.spider_error_count + ' '
+    #         command = 'scrapy runspider' + close_opton + 'Spider.py' + option
+    #         proc = Popen(command, shell=True)
+    #         proc.wait()
 
-            # Get crawling result.
-            dict_json = {}
-            if os.path.exists(result_file):
-                with codecs.open(result_file, 'r', encoding='utf-8') as fin:
-                    target_text = self.delete_ctrl_char(fin.read())
-                    if target_text != '':
-                        dict_json = json.loads(target_text)
-                    else:
-                        self.print_message(WARNING, '[{}] is empty.'.format(result_file))
+    #         # Get crawling result.
+    #         dict_json = {}
+    #         if os.path.exists(result_file):
+    #             with codecs.open(result_file, 'r', encoding='utf-8') as fin:
+    #                 target_text = self.delete_ctrl_char(fin.read())
+    #                 if target_text != '':
+    #                     dict_json = json.loads(target_text)
+    #                 else:
+    #                     self.print_message(WARNING, '[{}] is empty.'.format(result_file))
 
-            # Exclude except allowed domains.
-            for idx in range(len(dict_json)):
-                items = dict_json[idx]['urls']
-                for item in items:
-                    try:
-                        if target_ip == util.parse_url(item).host:
-                            target_log.append(item)
-                    except Exception as err:
-                        self.print_exception(err, 'Parsed error: {}'.format(item))
-            all_targets_log.append([target_url, os.path.join(self.store_path, response_log), list(set(target_log))])
-        return all_targets_log
+    #         # Exclude except allowed domains.
+    #         for idx in range(len(dict_json)):
+    #             items = dict_json[idx]['urls']
+    #             for item in items:
+    #                 try:
+    #                     if target_ip == util.parse_url(item).host:
+    #                         target_log.append(item)
+    #                 except Exception as err:
+    #                     self.print_exception(err, 'Parsed error: {}'.format(item))
+    #         all_targets_log.append([target_url, os.path.join(self.store_path, response_log), list(set(target_log))])
+    #     return all_targets_log

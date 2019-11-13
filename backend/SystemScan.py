@@ -4,8 +4,8 @@ import requests
 from lxml import html
 import xml.etree.ElementTree as treant
 import warnings
-from util import Utilty
-from __const import *
+from util import Utility
+from __const import OK, NOTE, WARNING
 from pycvesearch import CVESearch
 
 class SystemScan:
@@ -18,18 +18,19 @@ class SystemScan:
         self.cve = CVESearch()
 
     def startScan(self):
-        u = Utilty()
+        u = Utility()
         u.print_message(NOTE, "Starting NMAP Scan for Host " + self.ip)
         self.sc.scan(self.ip, arguments="-p0-65535 -T5 -Pn -sV -sT --min-rate 1000")
         self.xml = self.sc.get_nmap_last_output()
         u.print_message(OK, "Scan completed for Host " + self.ip)
+        self.fetchMSFE()
         
 
     def fetchMSFE(self):
         self.OScpe = []
         root = treant.fromstring(self.xml)
         cpeinfo = []
-        u = Utilty()
+        u = Utility()
         for child in root.findall('host'):
             for k in child.findall('address'):
                 host = k.attrib['addr']
