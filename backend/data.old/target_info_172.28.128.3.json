@@ -1,0 +1,147 @@
+{
+    "rhost": "172.28.128.3",
+    "os_type": 5,
+    "22": {
+        "prod_name": "ssh",
+        "version": 6.61,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/linux/ssh/ceragon_fibeair_known_privkey",
+            "exploit/linux/ssh/exagrid_known_privkey",
+            "exploit/linux/ssh/f5_bigip_known_privkey",
+            "exploit/linux/ssh/loadbalancerorg_enterprise_known_privkey",
+            "exploit/linux/ssh/mercurial_ssh_exec",
+            "exploit/linux/ssh/quantum_dxi_known_privkey",
+            "exploit/linux/ssh/solarwinds_lem_exec",
+            "exploit/linux/ssh/symantec_smg_ssh",
+            "exploit/linux/ssh/vmware_vdp_known_privkey",
+            "exploit/unix/ssh/tectia_passwd_changereq"
+        ]
+    },
+    "111": {
+        "prod_name": "rpc",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/linux/http/supervisor_xmlrpc_exec",
+            "exploit/multi/ids/snort_dce_rpc",
+            "exploit/multi/misc/msf_rpc_console",
+            "exploit/multi/misc/teamcity_agent_xmlrpc_exec",
+            "exploit/unix/sonicwall/sonicwall_xmlrpc_rce",
+            "exploit/unix/webapp/php_xmlrpc_eval"
+        ]
+    },
+    "139": {
+        "prod_name": "samba",
+        "version": 4.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/linux/samba/chain_reply",
+            "exploit/linux/samba/is_known_pipename",
+            "exploit/linux/samba/lsa_transnames_heap",
+            "exploit/linux/samba/trans2open",
+            "exploit/multi/samba/usermap_script"
+        ]
+    },
+    "445": {
+        "prod_name": "samba",
+        "version": 4.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/linux/samba/chain_reply",
+            "exploit/linux/samba/is_known_pipename",
+            "exploit/linux/samba/lsa_transnames_heap",
+            "exploit/linux/samba/trans2open",
+            "exploit/multi/samba/usermap_script"
+        ]
+    },
+    "631": {
+        "prod_name": "unknown",
+        "version": 1.7,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": []
+    },
+    "3306": {
+        "prod_name": "mysql",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/linux/mysql/mysql_yassl_getname",
+            "exploit/linux/mysql/mysql_yassl_hello",
+            "exploit/multi/mysql/mysql_udf_payload"
+        ]
+    },
+    "4444": {
+        "prod_name": "unknown",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": []
+    },
+    "6667": {
+        "prod_name": "irc",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/multi/misc/legend_bot_exec",
+            "exploit/multi/misc/pbot_exec",
+            "exploit/multi/misc/w3tw0rk_exec",
+            "exploit/multi/misc/xdh_x_exec",
+            "exploit/unix/irc/unreal_ircd_3281_backdoor"
+        ]
+    },
+    "6697": {
+        "prod_name": "irc",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/multi/misc/legend_bot_exec",
+            "exploit/multi/misc/pbot_exec",
+            "exploit/multi/misc/w3tw0rk_exec",
+            "exploit/multi/misc/xdh_x_exec",
+            "exploit/unix/irc/unreal_ircd_3281_backdoor"
+        ]
+    },
+    "8067": {
+        "prod_name": "irc",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/multi/misc/legend_bot_exec",
+            "exploit/multi/misc/pbot_exec",
+            "exploit/multi/misc/w3tw0rk_exec",
+            "exploit/multi/misc/xdh_x_exec",
+            "exploit/unix/irc/unreal_ircd_3281_backdoor"
+        ]
+    },
+    "8080": {
+        "prod_name": "unknown",
+        "version": 8.17,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": []
+    },
+    "55802": {
+        "prod_name": "rpc",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/linux/http/supervisor_xmlrpc_exec",
+            "exploit/multi/ids/snort_dce_rpc",
+            "exploit/multi/misc/msf_rpc_console",
+            "exploit/multi/misc/teamcity_agent_xmlrpc_exec",
+            "exploit/unix/sonicwall/sonicwall_xmlrpc_rce",
+            "exploit/unix/webapp/php_xmlrpc_eval"
+        ]
+    }
+}

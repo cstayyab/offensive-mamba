@@ -1,0 +1,17 @@
+{
+    "rhost": "172.28.128.3",
+    "os_type": 15,
+    "6697": {
+        "prod_name": "irc",
+        "version": 0.0,
+        "protocol": "tcp",
+        "target_path": "",
+        "exploit": [
+            "exploit/multi/misc/legend_bot_exec",
+            "exploit/multi/misc/pbot_exec",
+            "exploit/multi/misc/w3tw0rk_exec",
+            "exploit/multi/misc/xdh_x_exec",
+            "exploit/unix/irc/unreal_ircd_3281_backdoor"
+        ]
+    }
+}

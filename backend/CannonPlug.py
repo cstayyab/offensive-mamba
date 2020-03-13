@@ -22,4 +22,5 @@ class CannonPlug(object):
         raise NotImplementedError("This method needs to provide all the realted module given the tactic ID of ATT&CK Framework.")
     def fireModule(self, module: str, host: str, port: int):
         raise NotImplementedError("This method will fire the specified module at the given port and either return a session or a failure message.")
-    
+    def tryCompromising(self, host: str, port: int, cpe: str):
+        raise NotImplementedError("This method will try to comprimse the service running of given host and port.")

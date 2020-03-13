@@ -4,22 +4,27 @@ import configparser
 from configparser import ConfigParser
 from SystemScan import SystemScan
 from util import Utility
+from __const import FAIL
+from MetasploitCannon import MetasploitCannon
 
 class CannonEngine:
     def __init__(self):
         self.cannons = {}
-        self.techniques={}
+        self.tactics={}
         self.ips = []
         self.scaninfo = {}
+        self.util = Utility()
+        self.shells = {}
     def registerCannonPlug(self, plug: CannonPlug):
-        techs = plug.getSupportedAttackTechniques()
-        for tech in techs:
-            if not (tech in self.techniques):
-                self.techniques[tech] = []
-            for mod in plug.getModulesForTechniques(tech):
-                self.techniques[tech].append([type(plug).__name__, mod])
+        tactics = plug.getSupportedAttackTactics()
+        for tactic in tactics:
+            if not (tactic in self.tactics):
+                self.tactics[tactic] = []
+            for mod in plug.getModulesForTactics(tactic):
+                self.tactics[tactic].append([type(plug).__name__, mod])
+        self.cannons[type(plug).__name__] = globals()[type(plug).__name__]
     def getAllRegisteredTechniques(self):
-        return list(self.techniques.keys())
+        return list(self.tactics.keys())
     def registerIP(self, ipaddr:str):
         u = Utility()
         if not u.isValidIP(ipaddr):
@@ -32,4 +37,24 @@ class CannonEngine:
         self.scaninfo[ipaddr] = SystemScan(ipaddr)
         self.scaninfo[ipaddr].startScan()
     def getSession(self, ipaddr: str):
-        pass
+        # TA0001 : Initial Access
+        if not ("TA0001" in self.getAllRegisteredTechniques()):
+            self.util.print_message(FAIL, "No Initial Access Modules are registered. Cannot Continue.")
+            return False
+        if not (self.scaninfo[ipaddr]):
+            self.util.print_message(FAIL, "No Scan info for host: " + ipaddr + "! Cannot Continue.")
+            return False
+        
+        tactics = self.tactics['TA0001']
+        for t in tactics:
+            cannon = self.cannons[t[0]]()
+            targets = self.scaninfo[ipaddr].cpes
+            print(targets)
+            for target in targets:
+                print(target)
+                shell = cannon.fireModule(t[1], target['host'], int(target['port']))
+                if(shell is not None):
+                    self.shells[ipaddr] = shell
+                    return True
+        return False
+                
