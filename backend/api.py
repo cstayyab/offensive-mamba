@@ -6,8 +6,11 @@ from flask_classful import FlaskView, route
 from api_utils import APIUtils
 from database_handler import DatabaseHandler
 from flask_cors import CORS
+import socketio
+import eventlet
 
 DBHANLDE = DatabaseHandler()
+socketIOServer = socketio.Server(cors_allowed_origins='*')
 
 
 class BaseView(FlaskView):
@@ -168,7 +171,7 @@ class AgentView(FlaskView):
         if "username" not in request.json.keys():
             return {'success': False, 'error': "You are not logged in to access this resource."}
         return DBHANLDE.get_local_systems(request.json['username'])
-    
+
     @route('/getsystemstatus', methods=['POST'])
     def get_current_status(self):
         if "username" not in request.json.keys():
@@ -176,7 +179,7 @@ class AgentView(FlaskView):
         if 'localip' not in request.json:
             return {'success': False, 'error': "Please provide a valid Local IP."}
         return DBHANLDE.get_local_system_status(request.json['username'], request.json['localip'])
-    
+
     @route('/exploitlogs', methods=['POST'])
     def get_exploitation_logs(self):
         if "username" not in request.json.keys():
@@ -193,6 +196,7 @@ class AgentView(FlaskView):
             return {'success': False, 'error': "Please provide IP of Local System."}
         return DBHANLDE.get_latest_exploitation_data(request.json['username'], request.json['localip'])
 
+
 class FlaskAPI(Flask):
     def __init__(self):
         super().__init__("Offensive Mamba RESTful API")
@@ -208,10 +212,13 @@ class FlaskAPI(Flask):
         if auth_head is None:
             return False
         token = auth_head.split(" ")[1]
-        auth_data = APIUtils.decrypt_jwt_token(token)
-        for key, value in auth_data.items():
-            request.json[key] = value
-        return True
+        try:
+            auth_data = APIUtils.decrypt_jwt_token(token)
+            for key, value in auth_data.items():
+                request.json[key] = value
+            return True
+        except:
+            return False
 
     # @staticmethod
     # def check_agent_ip(username: str) -> bool:
@@ -227,7 +234,25 @@ class FlaskAPI(Flask):
 
 
 if __name__ == '__main__':
-    APP = FlaskAPI()
-    CORS(APP)
-    APP.run(host="0.0.0.0", port=8080, debug=True)
-    
+
+    @socketIOServer.event
+    def connect(sid, environ):
+        print('connect ', sid)
+        socketIOServer.emit("message", data="Connection Receieved", to=sid)
+
+
+    @socketIOServer.event
+    def message(sid, data):
+        print('message ', data)
+        socketIOServer.disconnect(sid)
+
+
+    @socketIOServer.event
+    def disconnect(sid):
+        print('disconnect ', sid)
+
+    FlaskAPP = FlaskAPI()
+    CORS(FlaskAPP)
+    APP = socketio.WSGIApp(socketIOServer, FlaskAPP)
+    # APP.wsgi_app.run(host="0.0.0.0", port=8080, debug=True)
+    eventlet.wsgi.server(eventlet.listen(('', 8080)), APP)
