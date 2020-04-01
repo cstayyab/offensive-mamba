@@ -253,7 +253,7 @@ if __name__ == '__main__':
         response = DBHANLDE.change_agent_ip(auth_data['username'], environ['REMOTE_ADDR'])
         if(response['success'] == False):
             socketIOServer.emit('connection_failed', json.dumps({'reason': response['error']}), to=sid)
-        connected_clients[auth_data['username']] = environ['REMOTE_ADDR']
+        connected_clients[str(sid)] = {'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
 
         
 
@@ -266,7 +266,10 @@ if __name__ == '__main__':
 
     @socketIOServer.event
     def disconnect(sid):
-        print('disconnect ', sid)
+        if str(sid) in connected_clients:
+            client = connected_clients[str(sid)]
+            DBHANLDE.change_agent_ip(client['username'], None)
+            print(client['username'] + "(" + client['agent_ip'] + ")" + " disconnected")
 
     FlaskAPP = FlaskAPI()
     CORS(FlaskAPP)
