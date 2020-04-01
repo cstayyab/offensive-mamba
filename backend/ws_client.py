@@ -1,10 +1,11 @@
 import socketio
+import requests
 
 sio = socketio.Client()
 
 @sio.event
 def connect():
-    print('connection established')
+    print('Connection established with Offensive Mamba Server')
 
 @sio.event
 def message(data):
@@ -14,6 +15,8 @@ def message(data):
 @sio.event
 def disconnect():
     print('disconnected from server')
+
+
 
 sio.connect('http://115.186.176.141:8080', headers={})
 sio.wait()

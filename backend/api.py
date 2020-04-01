@@ -237,15 +237,18 @@ if __name__ == '__main__':
 
     @socketIOServer.event
     def connect(sid, environ):
-        print('connect ', sid)
-        socketIOServer.emit("message", data="Connection Receieved", to=sid)
+        # print('Environ', environ)
+        if(not (('HTTP_AUTHORIZATION' in environ) and str(environ['HTTP_AUTHORIZATION']).startswith('Bearer '))):
+            socketIOServer.disconnect(sid)
+        token = environ['HTTP_AUTHORIZATION'][7:]
+        
 
 
     @socketIOServer.event
     def message(sid, data):
+        
         print('message ', data)
         socketIOServer.disconnect(sid)
-
 
     @socketIOServer.event
     def disconnect(sid):
