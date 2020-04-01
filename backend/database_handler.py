@@ -227,14 +227,14 @@ class DatabaseHandler:
     def change_agent_ip(self, username: str, ipaddr: str) -> dict:
         if not self.username_exists(username):
             return {"success": False, "error": "Username does not exist!"}
-        if not APIUtils.validate("ipaddress", ipaddr):
+        if (ipaddr is not None) and not APIUtils.validate("ipaddress", ipaddr):
             return {"success": False, "error": "IP Address is invalid! Please provide a valid IPv4 Address."}
         # "Warning"? Issue in pylint: https://github.com/MongoEngine/mongoengine/issues/858
         user: User = User.objects(username=username)[0]
         user.publicIP = ipaddr
         ipverify = str(uuid4())
         user.publicIPVerifier = ipverify
-        user.verifiedPublicIP = False
+        user.verifiedPublicIP = True
         user.save()
         return {
             "success": True,
