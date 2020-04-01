@@ -8,6 +8,7 @@ from database_handler import DatabaseHandler
 from flask_cors import CORS
 import socketio
 import eventlet
+import json
 
 DBHANLDE = DatabaseHandler()
 socketIOServer = socketio.Server(cors_allowed_origins='*')
@@ -235,12 +236,21 @@ class FlaskAPI(Flask):
 
 if __name__ == '__main__':
 
+    connected_clients = {}
+
     @socketIOServer.event
     def connect(sid, environ):
-        # print('Environ', environ)
+        print('Environ', environ)
         if(not (('HTTP_AUTHORIZATION' in environ) and str(environ['HTTP_AUTHORIZATION']).startswith('Bearer '))):
             socketIOServer.disconnect(sid)
         token = environ['HTTP_AUTHORIZATION'][7:]
+        auth_data = {}
+        try:
+            auth_data = APIUtils.decrypt_jwt_token(token)
+        except:
+            socketIOServer.emit('connection_failed', json.dumps({'reason':'Invalid Token!'}), to=sid)
+            socketIOServer.disconnect(sid)
+        socketIOServer.emit('connected', json.dumps({}), to=sid)
         
 
 
