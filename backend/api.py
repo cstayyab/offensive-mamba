@@ -250,6 +250,11 @@ if __name__ == '__main__':
         except:
             socketIOServer.emit('connection_failed', json.dumps({'reason':'Invalid Token!'}), to=sid)
             socketIOServer.disconnect(sid)
+        response = DBHANLDE.change_agent_ip(auth_data['username'], environ['REMOTE_ADDR'])
+        if(response['success'] == False):
+            socketIOServer.emit('connection_failed', json.dumps({'reason': response['error']}), to=sid)
+        connected_clients[auth_data['username']] = environ['REMOTE_ADDR']
+
         
 
 
