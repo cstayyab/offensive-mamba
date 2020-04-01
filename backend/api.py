@@ -250,7 +250,6 @@ if __name__ == '__main__':
         except:
             socketIOServer.emit('connection_failed', json.dumps({'reason':'Invalid Token!'}), to=sid)
             socketIOServer.disconnect(sid)
-        socketIOServer.emit('connected', json.dumps({}), to=sid)
         
 
 
