@@ -1,21 +1,20 @@
 """
 Module handling the complete RESTful API with the help of Database Handler
 """
-# import eventlet
+
 from flask import Flask, request
 from flask_classful import FlaskView, route
 from api_utils import APIUtils
 from database_handler import DatabaseHandler
 from flask_cors import CORS
 import time
-# from eventlet import monkey_patch
 import json
 import uuid
-DBHANLDE = DatabaseHandler()
-
-# monkey_patch(socket=True, thread=True)
 import socketio
 import threading
+from MetasploitCannon import MetasploitCannon
+DBHANLDE = DatabaseHandler()
+
 socketIOServer = socketio.Server(cors_allowed_origins='*', async_mode='threading')
 
 
@@ -246,9 +245,12 @@ def scan_all_systems(username):
     system = "127.0.0.1"
     nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
     print(nmap_response)
+    nmap_file = nmap_response['localfile']
     agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
     print(agent_ip_response)
-
+    agent_ip = agent_ip_response['agent_ip']
+    msfcannon = MetasploitCannon(agent_ip, system, username, nmap_file)
+    msfcannon.run()
 
 
 @socketIOServer.event
