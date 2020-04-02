@@ -365,7 +365,8 @@ class MetasploitCannon(CannonPlug):
     all_exploit_list = []
     loading_exploit_list = False
 
-    def __init__(self, agent_ip: str, target_ip: str, username: str, password: str, nmap_file: str):
+    # def __init__(self, agent_ip: str, target_ip: str, username: str, password: str, nmap_file: str):
+    def __init__(self, target_ip: str, username: str, nmap_file: str):
         self.util = Utility()
         self.rhost = target_ip
 
@@ -379,11 +380,11 @@ class MetasploitCannon(CannonPlug):
                 FAIL, 'Configuration file missing. exiting...')
             sys.exit(1)
         # server_host = config['Common']['server_host'] # replace with agent_ip
-        self.agent_ip = agent_ip
-        server_host = self.agent_ip
+        # self.agent_ip = agent_ip
+        # server_host = self.agent_ip
 
         self.lhost = server_host
-        server_port = int(config['Common']['server_port'])
+        # server_port = int(config['Common']['server_port'])
         # self.msgrpc_user = config['Common']['msgrpc_user']
         # self.msgrpc_pass = config['Common']['msgrpc_pass']
         self.msgrpc_user = username
