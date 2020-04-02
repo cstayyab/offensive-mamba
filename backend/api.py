@@ -297,6 +297,7 @@ def disconnect(sid):
         DBHANLDE.change_agent_ip(client['username'], None)
         print(client['username'] +
               "(" + client['agent_ip'] + ")" + " disconnected")
+        del connected_clients[str(sid)]
 
 
 def find_sid_by_username(username):
