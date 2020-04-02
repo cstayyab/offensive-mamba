@@ -8,13 +8,13 @@ from database_handler import DatabaseHandler
 from flask_cors import CORS
 import socketio
 import eventlet
+from eventlet import monkey_patch
 import json
 import uuid
 import time
 import threading
-from gevent import monkey
 
-monkey.patch_all()
+monkey_patch()
 DBHANLDE = DatabaseHandler()
 socketIOServer = socketio.Server(cors_allowed_origins='*')
 
