@@ -297,6 +297,7 @@ def find_sid_by_username(username):
 def send_command(username, data):
     request_id = str(uuid.uuid4())
     data['request_id'] = request_id
+    all_requests[request_id] = {}
     all_requests[request_id]['request'] = data
     sid = find_sid_by_username(username)
     if sid is False:
