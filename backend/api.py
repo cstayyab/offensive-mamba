@@ -242,8 +242,8 @@ all_requests = {}
 
 def scan_all_systems(username):
     system = "127.0.0.1"
-    # nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
-    # print(nmap_response)
+    nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
+    print(nmap_response)
     agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
     print(agent_ip_response)
 
