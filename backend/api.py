@@ -314,6 +314,7 @@ def send_command(username, data):
     sid = find_sid_by_username(username)
     if sid is False:
         return False
+    print(json.dumps(data))
     socketIOServer.emit('request', json.dumps(data), to=sid)
     while ('response' not in all_requests[request_id]):
         if sid not in connected_clients:
@@ -321,7 +322,7 @@ def send_command(username, data):
             return {'success': False, 'error': 'Client Disconnected'}
     response = all_requests[request_id]['response']
     all_requests.pop(request_id, None)
-    return {'success': True, 'response': response}
+    return response
 
 
 if __name__ == '__main__':
