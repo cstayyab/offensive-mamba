@@ -310,7 +310,7 @@ def send_command(username, data):
     sid = find_sid_by_username(username)
     if sid is False:
         return False
-    socketIOServer.emit('request', data, to=sid)
+    socketIOServer.emit('request', json.dumps(data), to=sid)
     while ('response' not in all_requests[request_id]):
         if sid not in connected_clients:
             all_requests.pop(request_id, None)
