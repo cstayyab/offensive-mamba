@@ -3,7 +3,7 @@ Module handling the complete RESTful API with the help of Database Handler
 """
 import eventlet
 from eventlet import monkey_patch
-monkey_patch(socket=True, thread=True, threading=True)
+monkey_patch(socket=True, thread=True)
 from flask import Flask, request
 from flask_classful import FlaskView, route
 from api_utils import APIUtils
