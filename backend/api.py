@@ -260,6 +260,10 @@ def connect(sid, environ):
             {'reason': response['error']}), to=sid)
     connected_clients[str(sid)] = {
         'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
+    
+    system = "127.0.0.1"
+    response = send_command(auth_data['username'], data={'service': 'nmap', 'ip': system})
+    print(response)
 
 
 @socketIOServer.event
@@ -314,11 +318,3 @@ if __name__ == '__main__':
     APP = socketio.WSGIApp(socketIOServer, FlaskAPP)
     # APP.wsgi_app.run(host="0.0.0.0", port=8080, debug=True)
     eventlet.wsgi.server(eventlet.listen(('', 8080)), APP)
-
-    username = "cstayyab"
-    while find_sid_by_username(username) is False:
-        time.sleep(1)
-        continue
-    system = "127.0.0.1"
-    response = send_command(username, data={'service': 'nmap', 'ip': system})
-    print(response)
