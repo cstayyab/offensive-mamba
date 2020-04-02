@@ -317,6 +317,7 @@ def send_command(username, data):
         return False
     print(json.dumps(data))
     socketIOServer.emit('request', json.dumps(data), to=sid)
+    socketIOServer.sleep(0)
     while ('response' not in all_requests[request_id]):
         if sid not in connected_clients:
             all_requests.pop(request_id, None)
