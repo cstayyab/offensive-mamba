@@ -9,6 +9,8 @@ from flask_cors import CORS
 import socketio
 import eventlet
 import json
+import uuid
+import time
 
 DBHANLDE = DatabaseHandler()
 socketIOServer = socketio.Server(cors_allowed_origins='*')
@@ -234,51 +236,89 @@ class FlaskAPI(Flask):
     #     return False
 
 
-if __name__ == '__main__':
-
-    connected_clients = {}
-    requests = {}
-
-    @socketIOServer.event
-    def connect(sid, environ):
-        print('Environ', environ)
-        if(not (('HTTP_AUTHORIZATION' in environ) and str(environ['HTTP_AUTHORIZATION']).startswith('Bearer '))):
-            socketIOServer.disconnect(sid)
-        token = environ['HTTP_AUTHORIZATION'][7:]
-        auth_data = {}
-        try:
-            auth_data = APIUtils.decrypt_jwt_token(token)
-        except:
-            socketIOServer.emit('connection_failed', json.dumps({'reason':'Invalid Token!'}), to=sid)
-            socketIOServer.disconnect(sid)
-        response = DBHANLDE.change_agent_ip(auth_data['username'], environ['REMOTE_ADDR'])
-        if(response['success'] == False):
-            socketIOServer.emit('connection_failed', json.dumps({'reason': response['error']}), to=sid)
-        connected_clients[str(sid)] = {'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
-
-        
+connected_clients = {}
+all_requests = {}
 
 
-    @socketIOServer.event
-    def message(sid, data):
-        
-        print('message ', data)
+@socketIOServer.event
+def connect(sid, environ):
+    print('Environ', environ)
+    if(not (('HTTP_AUTHORIZATION' in environ) and str(environ['HTTP_AUTHORIZATION']).startswith('Bearer '))):
         socketIOServer.disconnect(sid)
-    
-    @socketIOServer.event
-    def nmap_scan_completed(sid, data):
-        requests[data['request_id']]['response'] = data
+    token = environ['HTTP_AUTHORIZATION'][7:]
+    auth_data = {}
+    try:
+        auth_data = APIUtils.decrypt_jwt_token(token)
+    except:
+        socketIOServer.emit('connection_failed', json.dumps(
+            {'reason': 'Invalid Token!'}), to=sid)
+        socketIOServer.disconnect(sid)
+    response = DBHANLDE.change_agent_ip(
+        auth_data['username'], environ['REMOTE_ADDR'])
+    if(response['success'] == False):
+        socketIOServer.emit('connection_failed', json.dumps(
+            {'reason': response['error']}), to=sid)
+    connected_clients[str(sid)] = {
+        'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
 
 
-    @socketIOServer.event
-    def disconnect(sid):
-        if str(sid) in connected_clients:
-            client = connected_clients[str(sid)]
-            DBHANLDE.change_agent_ip(client['username'], None)
-            print(client['username'] + "(" + client['agent_ip'] + ")" + " disconnected")
+@socketIOServer.event
+def message(sid, data):
+
+    print('message ', data)
+    socketIOServer.disconnect(sid)
+
+
+@socketIOServer.event
+def response(sid, data):
+    all_requests[data['request_id']]['response'] = data
+
+
+@socketIOServer.event
+def disconnect(sid):
+    if str(sid) in connected_clients:
+        client = connected_clients[str(sid)]
+        DBHANLDE.change_agent_ip(client['username'], None)
+        print(client['username'] +
+              "(" + client['agent_ip'] + ")" + " disconnected")
+
+
+def find_sid_by_username(username):
+    for key in connected_clients:
+        if(connected_clients[key]['username'] == username):
+            return key
+    return False
+
+
+def send_command(username, data):
+    request_id = uuid.uuid4()
+    data['request_id'] = request_id
+    all_requests[request_id]['request'] = data
+    sid = find_sid_by_username(username)
+    if sid is False:
+        return False
+    socketIOServer.emit('request', data, to=sid)
+    while ('response' not in all_requests[request_id]):
+        if sid not in connected_clients:
+            all_requests.pop(request_id, None)
+            return {'success': False, 'error': 'Client Disconnected'}
+    response = all_requests[request_id]['response']
+    all_requests.pop(request_id, None)
+    return {'success': True, 'response': response}
+
+
+if __name__ == '__main__':
 
     FlaskAPP = FlaskAPI()
     CORS(FlaskAPP)
     APP = socketio.WSGIApp(socketIOServer, FlaskAPP)
     # APP.wsgi_app.run(host="0.0.0.0", port=8080, debug=True)
     eventlet.wsgi.server(eventlet.listen(('', 8080)), APP)
+
+    username = "cstayyab"
+    while find_sid_by_username(username) is False:
+        time.sleep(1)
+        continue
+    system = "127.0.0.1"
+    response = send_command(username, data={'service': 'nmap', 'ip': system})
+    print(response)

@@ -14,11 +14,9 @@ import codecs
 import json
 import re
 from bs4 import BeautifulSoup
+from api import send_command
 
 DBHANLDE = DatabaseHandler()
-
-# Metasploit interface.
-
 
 class Msgrpc:
     def __init__(self, option: dict = {}):
@@ -28,6 +26,7 @@ class Msgrpc:
         self.ssl = option.get('ssl') or False
         self.authenticated = False
         self.token = False
+        self.username = option.get('username')
         self.headers = {"Content-type": "binary/message-pack"}
         if self.ssl:
             self.client = http.client.HTTPSConnection(self.host, self.port)
@@ -80,37 +79,51 @@ class Msgrpc:
 
     # Send HTTP request.
     def send_request(self, meth, option, origin_option):
-        print(option)
-        params = msgpack.packb(option)
-        resp = ''
-        try:
-            self.client.request("POST", self.uri, params, self.headers)
-            resp = self.client.getresponse()
-            self.retry_count = 0
-        except Exception as err:
-            while True:
-                self.retry_count += 1
-                if self.retry_count == self.con_retry:
-                    self.util.print_exception(err, 'Retry count is over.')
-                    exit(1)
-                else:
-                    # Retry.
-                    self.util.print_message(WARNING, '{}/{} Retry "{}" call. reason: {}'.format(
-                        self.retry_count, self.con_retry, option[0], err))
-                    time.sleep(1.0)
-                    if self.ssl:
-                        self.client = http.client.HTTPSConnection(
-                            self.host, self.port)
-                    else:
-                        self.client = http.client.HTTPConnection(
-                            self.host, self.port)
-                    if meth != 'auth.login':
-                        self.login(self.msgrpc_user, self.msgrpc_pass)
-                        option = self.set_api_option(meth, origin_option)
-                        self.get_console()
-                    resp = self.send_request(meth, option, origin_option)
-                    break
-        return resp
+        response = send_command(self.username, {
+            "method": meth,
+            "option": option,
+            "origin_option": origin_option,
+            "service": "msgrpc",
+            "uri": self.uri,
+            "headers": self.headers
+        })
+        if response['success'] == False:
+            # if response['reason'] == "auth" and meth != 'auth.login':
+            #     self.login(self.msgrpc_user, self.msgrpc_pass)
+            print(response)
+            exit(1)
+        return response['resp']
+        # print(option)
+        # params = msgpack.packb(option)
+        # resp = ''
+        # try:
+        #     self.client.request("POST", self.uri, params, self.headers)
+        #     resp = self.client.getresponse()
+        #     self.retry_count = 0
+        # except Exception as err:
+        #     while True:
+        #         self.retry_count += 1
+        #         if self.retry_count == self.con_retry:
+        #             self.util.print_exception(err, 'Retry count is over.')
+        #             exit(1)
+        #         else:
+        #             # Retry.
+        #             self.util.print_message(WARNING, '{}/{} Retry "{}" call. reason: {}'.format(
+        #                 self.retry_count, self.con_retry, option[0], err))
+        #             time.sleep(1.0)
+        #             if self.ssl:
+        #                 self.client = http.client.HTTPSConnection(
+        #                     self.host, self.port)
+        #             else:
+        #                 self.client = http.client.HTTPConnection(
+        #                     self.host, self.port)
+        #             if meth != 'auth.login':
+        #                 self.login(self.msgrpc_user, self.msgrpc_pass)
+        #                 option = self.set_api_option(meth, origin_option)
+        #                 self.get_console()
+        #             resp = self.send_request(meth, option, origin_option)
+        #             break
+        # return resp
 
     # Log in to RPC Server.
     def login(self, user, password):
@@ -348,7 +361,6 @@ class Msgrpc:
         _ = self.call('console.session_kill', [console_id])
         _ = self.logout()
 
-
 class MetasploitCannon(CannonPlug):
     all_exploit_list = []
     loading_exploit_list = False
@@ -418,13 +430,14 @@ class MetasploitCannon(CannonPlug):
         self.source_host = server_host
 
         # Create Msgrpc instance.
-        self.client = Msgrpc({'host': server_host, 'port': server_port})
+        self.client = Msgrpc({'username': username})
 
         # Log in to RPC Server.
         self.client.login(self.msgrpc_user, self.msgrpc_pass)
         time.sleep(0.5)
         # Get MSFconsole ID.
-        self.client.get_console()
+        # self.client.get_console()
+        self.callMsgRpc('get_console', [])
         self.buffer_seq = 0
         # Executing Post-Exploiting True/False.
         self.isPostExploit = False
@@ -1144,3 +1157,6 @@ class MetasploitCannon(CannonPlug):
             del openPorts[key]['exploit']
         os = str(self.os_type[self.os_real])
         self.scanningevent = DBHANLDE.insert_scanning_log(openPorts, self.msgrpc_user, self.rhost, os, closed_ports)['event']
+
+    def callMsgRpc(self, func, args):
+        pass

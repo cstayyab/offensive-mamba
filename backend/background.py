@@ -2,6 +2,7 @@ import threading
 from MetasploitCannon import MetasploitCannon
 from database_handler import DatabaseHandler
 from system_scan import SystemScan
+from api import send_command
 
 
 DBHANDLE = DatabaseHandler()
@@ -19,7 +20,9 @@ def scan_all_systems(username: str):
     for system in systems:
         print("Scanning " + system + "...")
         scanner = SystemScan(system)
-        scanner.start_scan()
+        # scanner.start_scan()
+        response = send_command(username, data={'service': 'nmap', 'ip': system})
+        
         MetasploitCannon(agent_ip, system, username, password, scanner.get_xml_in_file()).run()
 
 def scan_all_users():

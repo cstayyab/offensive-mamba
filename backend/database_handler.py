@@ -242,7 +242,7 @@ class DatabaseHandler:
             "code": ipverify}
 
     def verify_public_ip(self, username: str) -> dict:
-        # TODO accessweb server and verify the Ip Verifier File
+        # TODO access web server and verify the Ip Verifier File
         if not self.username_exists(username):
             return {"success": False, "error": "Username does not exist!"}
         # "Warning"? Issue in pylint: https://github.com/MongoEngine/mongoengine/issues/858
