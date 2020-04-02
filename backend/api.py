@@ -283,7 +283,8 @@ def message(sid, data):
 
 @socketIOServer.event
 def response(sid, data):
-    all_requests[data['request_id']]['response'] = data
+    res = json.loads(data)
+    all_requests[res['request_id']]['response'] = res
 
 
 @socketIOServer.event
