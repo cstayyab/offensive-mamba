@@ -2,13 +2,13 @@
 Module handling the complete RESTful API with the help of Database Handler
 """
 import eventlet
-from eventlet import monkey_patch
-monkey_patch(socket=True, thread=True)
 from flask import Flask, request
 from flask_classful import FlaskView, route
 from api_utils import APIUtils
 from database_handler import DatabaseHandler
 from flask_cors import CORS
+from eventlet import monkey_patch
+monkey_patch(socket=True, thread=True)
 import socketio
 import json
 import uuid
