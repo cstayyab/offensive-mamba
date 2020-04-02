@@ -12,7 +12,9 @@ import json
 import uuid
 import time
 import threading
+from gevent import monkey
 
+monkey.patch_all()
 DBHANLDE = DatabaseHandler()
 socketIOServer = socketio.Server(cors_allowed_origins='*')
 
