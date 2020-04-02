@@ -1,22 +1,22 @@
 """
 Module handling the complete RESTful API with the help of Database Handler
 """
-import eventlet
+# import eventlet
 from flask import Flask, request
 from flask_classful import FlaskView, route
 from api_utils import APIUtils
 from database_handler import DatabaseHandler
 from flask_cors import CORS
 import time
-from eventlet import monkey_patch
+# from eventlet import monkey_patch
 import json
 import uuid
 DBHANLDE = DatabaseHandler()
 
-monkey_patch(socket=True, thread=True)
+# monkey_patch(socket=True, thread=True)
 import socketio
 import threading
-socketIOServer = socketio.Server(cors_allowed_origins='*')
+socketIOServer = socketio.Server(cors_allowed_origins='*', async_mode='threading')
 
 
 class BaseView(FlaskView):
@@ -333,6 +333,8 @@ if __name__ == '__main__':
 
     FlaskAPP = FlaskAPI()
     CORS(FlaskAPP)
-    APP = socketio.WSGIApp(socketIOServer, FlaskAPP)
-    # APP.wsgi_app.run(host="0.0.0.0", port=8080, debug=True)
-    eventlet.wsgi.server(eventlet.listen(('', 8080)), APP)
+    # APP = socketio.WSGIApp(socketIOServer, FlaskAPP)
+    # # APP.wsgi_app.run()
+    # eventlet.wsgi.server(eventlet.listen(('', 8080)), APP)
+    FlaskAPP.wsgi_app = socketio.WSGIApp(socketIOServer, FlaskAPP.wsgi_app)
+    FlaskAPP.run(host="0.0.0.0", port=8080, debug=True, threaded=True)
