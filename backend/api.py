@@ -11,6 +11,7 @@ import eventlet
 import json
 import uuid
 import time
+import threading
 
 DBHANLDE = DatabaseHandler()
 socketIOServer = socketio.Server(cors_allowed_origins='*')
@@ -239,6 +240,11 @@ class FlaskAPI(Flask):
 connected_clients = {}
 all_requests = {}
 
+def scan_all_systems(username):
+    system = "127.0.0.1"
+    response = send_command(username, data={'service': 'nmap', 'ip': system})
+    print(response)
+
 
 @socketIOServer.event
 def connect(sid, environ):
@@ -261,9 +267,11 @@ def connect(sid, environ):
     connected_clients[str(sid)] = {
         'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
     
-    system = "127.0.0.1"
-    response = send_command(auth_data['username'], data={'service': 'nmap', 'ip': system})
-    print(response)
+    job = lambda username=auth_data['username']: scan_all_systems(username)
+    user_thread = threading.Thread(daemon=False, target=job)
+    user_thread.name = "mainthread_" + auth_data['username']
+    # user_threads.append(user_thread)
+    user_thread.start()
 
 
 @socketIOServer.event
