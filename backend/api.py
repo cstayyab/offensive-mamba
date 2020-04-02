@@ -12,7 +12,6 @@ import json
 import uuid
 import socketio
 import threading
-from MetasploitCannon import MetasploitCannon
 DBHANLDE = DatabaseHandler()
 
 socketIOServer = socketio.Server(cors_allowed_origins='*', async_mode='threading')
@@ -249,6 +248,7 @@ def scan_all_systems(username):
     agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
     print(agent_ip_response)
     agent_ip = agent_ip_response['agent_ip']
+    from MetasploitCannon import MetasploitCannon
     msfcannon = MetasploitCannon(agent_ip, system, username, nmap_file)
     msfcannon.run()
 
