@@ -1,20 +1,21 @@
 """
 Module handling the complete RESTful API with the help of Database Handler
 """
+import eventlet
+from eventlet import monkey_patch
+monkey_patch()
 from flask import Flask, request
 from flask_classful import FlaskView, route
 from api_utils import APIUtils
 from database_handler import DatabaseHandler
 from flask_cors import CORS
 import socketio
-import eventlet
-from eventlet import monkey_patch
 import json
 import uuid
 import time
 import threading
 
-monkey_patch()
+
 DBHANLDE = DatabaseHandler()
 socketIOServer = socketio.Server(cors_allowed_origins='*')
 
