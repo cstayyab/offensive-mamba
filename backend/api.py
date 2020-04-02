@@ -317,9 +317,10 @@ def send_command(username, data):
     all_requests[request_id] = {}
     all_requests[request_id]['request'] = data
     sid = find_sid_by_username(username)
+    print(username, json.dumps(data))
     if sid is False:
         return False
-    print(json.dumps(data))
+    
     socketIOServer.emit('request', json.dumps(data), to=sid)
     socketIOServer.sleep(0)
     while ('response' not in all_requests[request_id]):
