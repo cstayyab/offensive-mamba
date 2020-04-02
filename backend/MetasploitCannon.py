@@ -388,7 +388,7 @@ class MetasploitCannon(CannonPlug):
         # self.msgrpc_user = config['Common']['msgrpc_user']
         # self.msgrpc_pass = config['Common']['msgrpc_pass']
         self.msgrpc_user = username
-        self.msgrpc_pass = password
+        self.msgrpc_pass = ""
         self.timeout = int(config['Common']['timeout'])
         self.max_attempt = int(config['Common']['max_attempt'])
         self.save_path = os.path.join(
