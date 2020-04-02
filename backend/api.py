@@ -316,6 +316,7 @@ def send_command(username, data):
     data['request_id'] = request_id
     all_requests[request_id] = {}
     all_requests[request_id]['request'] = data
+    print(connected_clients)
     sid = find_sid_by_username(username)
     print(username, json.dumps(data))
     if sid is False:
