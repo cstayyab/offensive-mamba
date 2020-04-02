@@ -13,6 +13,8 @@ import uuid
 import socketio
 import threading
 DBHANLDE = DatabaseHandler()
+connected_clients = {}
+all_requests = {}
 
 socketIOServer = socketio.Server(cors_allowed_origins='*', async_mode='threading')
 
@@ -237,8 +239,7 @@ class FlaskAPI(Flask):
     #     return False
 
 
-connected_clients = {}
-all_requests = {}
+
 
 def scan_all_systems(username):
     system = "127.0.0.1"
@@ -302,6 +303,8 @@ def disconnect(sid):
         print(client['username'] +
               "(" + client['agent_ip'] + ")" + " disconnected")
         del connected_clients[str(sid)]
+    else:
+        print("disconnected (no sid)")
 
 
 def find_sid_by_username(username):
@@ -321,7 +324,6 @@ def send_command(username, data):
     print(username, json.dumps(data))
     if sid is False:
         return False
-    
     socketIOServer.emit('request', json.dumps(data), to=sid)
     socketIOServer.sleep(0)
     while ('response' not in all_requests[request_id]):
