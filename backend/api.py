@@ -9,7 +9,6 @@ from database_handler import DatabaseHandler
 from flask_cors import CORS
 import time
 from eventlet import monkey_patch
-monkey_patch(socket=True, thread=True)
 import socketio
 import json
 import uuid
@@ -336,4 +335,5 @@ if __name__ == '__main__':
     CORS(FlaskAPP)
     APP = socketio.WSGIApp(socketIOServer, FlaskAPP)
     # APP.wsgi_app.run(host="0.0.0.0", port=8080, debug=True)
+    monkey_patch(socket=True, thread=True)
     eventlet.wsgi.server(eventlet.listen(('', 8080)), APP)
