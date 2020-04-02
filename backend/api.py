@@ -237,6 +237,7 @@ class FlaskAPI(Flask):
 if __name__ == '__main__':
 
     connected_clients = {}
+    requests = {}
 
     @socketIOServer.event
     def connect(sid, environ):
@@ -263,6 +264,11 @@ if __name__ == '__main__':
         
         print('message ', data)
         socketIOServer.disconnect(sid)
+    
+    @socketIOServer.event
+    def nmap_scan_completed(sid, data):
+        requests[data['request_id']]['response'] = data
+
 
     @socketIOServer.event
     def disconnect(sid):
