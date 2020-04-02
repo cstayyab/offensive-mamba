@@ -7,12 +7,12 @@ from flask_classful import FlaskView, route
 from api_utils import APIUtils
 from database_handler import DatabaseHandler
 from flask_cors import CORS
+import time
 from eventlet import monkey_patch
 monkey_patch(socket=True, thread=True)
 import socketio
 import json
 import uuid
-import time
 import threading
 
 
