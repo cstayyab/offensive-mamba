@@ -424,7 +424,7 @@ class Msgrpc:
             #     self.login(self.msgrpc_user, self.msgrpc_pass)
             print(response)
             exit(1)
-        return bytes(response['resp'])
+        return msgpack.packb(response['resp'])
         # print(option)
         # params = msgpack.packb(option)
         # resp = ''
