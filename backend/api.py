@@ -262,10 +262,11 @@ def scan_all_systems(username):
     nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
     print(nmap_response)
     nmap_file = nmap_response['localfile']
+    nmap_file_contents = nmap_response['scandata']
     # agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
     # print(agent_ip_response)
     agent_ip = "127.0.0.1" # agent_ip_response['agent_ip']
-    msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file)
+    msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file, nmap_file_contents)
     msfcannon.run()
 
 
@@ -712,10 +713,10 @@ class MetasploitCannon(CannonPlug):
     loading_exploit_list = False
 
     # def __init__(self, agent_ip: str, target_ip: str, username: str, password: str, nmap_file: str):
-    def __init__(self, agent_ip:str, target_ip: str, username: str, nmap_file: str):
+    def __init__(self, agent_ip:str, target_ip: str, username: str, nmap_file: str, nmap_contents: str):
         self.util = Utility()
         self.rhost = target_ip
-
+        self.nmap_file_contents = nmap_contents
         # Read Configuration Options
         full_dir_path = os.path.dirname(os.path.abspath(__file__))
         config = configparser.ConfigParser()
@@ -1295,8 +1296,7 @@ class MetasploitCannon(CannonPlug):
         return payload_list
 
     def get_nmap_xml_contents(self):
-        nmap_file_content = open(self.nmap_result_file, 'rb').read()
-        return nmap_file_content
+        return self.nmap_file_contents
         # TODO Use cat command and MsfRPC API to get File Contents
 
     def get_target_info(self):
