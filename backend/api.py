@@ -419,7 +419,7 @@ class Msgrpc:
         response = send_command(self.username, {
             "method": meth,
             "option": option,
-            "origin_option": origin_option,
+            # "origin_option": origin_option,
             "service": "msgrpc",
             "uri": self.uri,
             "headers": self.headers
