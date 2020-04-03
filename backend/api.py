@@ -427,7 +427,11 @@ class Msgrpc:
         decoded_res = response['resp']
         resp = {}
         for key, value in decoded_res.items():
-            resp[bytes(key, "ascii")] = bytes(value, "ascii")
+            if key != "" and type(key) == str:
+                key = bytes(key, "ascii")
+            if value != "" and type(value) == str:
+                value = bytes(value, "ascii")
+            resp[key] = value
         print(resp)
         return msgpack.packb(resp)
         # print(option)
