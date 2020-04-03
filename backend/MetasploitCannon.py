@@ -14,8 +14,9 @@ import codecs
 import json
 import re
 from bs4 import BeautifulSoup
-from api import send_command
+import api
 
+send_command = api.send_command
 DBHANLDE = DatabaseHandler()
 
 class Msgrpc:
@@ -437,8 +438,7 @@ class MetasploitCannon(CannonPlug):
         self.client.login(self.msgrpc_user, self.msgrpc_pass)
         time.sleep(0.5)
         # Get MSFconsole ID.
-        # self.client.get_console()
-        self.callMsgRpc('get_console', [])
+        self.client.get_console()
         self.buffer_seq = 0
         # Executing Post-Exploiting True/False.
         self.isPostExploit = False
@@ -1159,5 +1159,3 @@ class MetasploitCannon(CannonPlug):
         os = str(self.os_type[self.os_real])
         self.scanningevent = DBHANLDE.insert_scanning_log(openPorts, self.msgrpc_user, self.rhost, os, closed_ports)['event']
 
-    def callMsgRpc(self, func, args):
-        pass

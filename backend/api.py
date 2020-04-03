@@ -12,7 +12,9 @@ import json
 import uuid
 import socketio
 import threading
+import MetasploitCannon
 DBHANLDE = DatabaseHandler()
+
 connected_clients = {}
 all_requests = {}
 
@@ -246,11 +248,10 @@ def scan_all_systems(username):
     nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
     print(nmap_response)
     nmap_file = nmap_response['localfile']
-    agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
-    print(agent_ip_response)
-    agent_ip = agent_ip_response['agent_ip']
-    from MetasploitCannon import MetasploitCannon
-    msfcannon = MetasploitCannon(agent_ip, system, username, nmap_file)
+    # agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
+    # print(agent_ip_response)
+    agent_ip = "127.0.0.1" # agent_ip_response['agent_ip']
+    msfcannon =  MetasploitCannon.MetasploitCannon(agent_ip, system, username, nmap_file)
     msfcannon.run()
 
 
