@@ -392,7 +392,12 @@ class Msgrpc:
     # Call RPC API.
     def call(self, meth, origin_option):
         # Set API option.
-        option = copy.deepcopy(origin_option)
+        bytes_option = copy.deepcopy(origin_option)
+        option = []
+        for op in bytes_option:
+            if type(op) == bytes:
+                op = op.decode('ascii')
+            option.append(op)
         option = self.set_api_option(meth, option)
 
         # Send request.
