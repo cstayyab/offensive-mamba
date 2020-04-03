@@ -258,14 +258,14 @@ class FlaskAPI(Flask):
 
 
 def scan_all_systems(username):
-    system = "127.0.0.1"
+    system = "172.18.0.2"
     nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
     print(nmap_response)
     nmap_file = nmap_response['localfile']
     nmap_file_contents = nmap_response['scandata']
-    # agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
-    # print(agent_ip_response)
-    agent_ip = "127.0.0.1" # agent_ip_response['agent_ip']
+    agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
+    print(agent_ip_response)
+    agent_ip = agent_ip_response['agent_ip'] # "127.0.0.1"
     msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file, nmap_file_contents)
     msfcannon.run()
 
