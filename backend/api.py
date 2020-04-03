@@ -424,7 +424,11 @@ class Msgrpc:
             #     self.login(self.msgrpc_user, self.msgrpc_pass)
             print(response)
             exit(1)
-        return msgpack.packb(response['resp'])
+        decoded_res = response['resp']
+        resp = {}
+        for key, value in decoded_res.items():
+            decoded_res[bytes(key)] = bytes(value)
+        return msgpack.packb(resp)
         # print(option)
         # params = msgpack.packb(option)
         # resp = ''
