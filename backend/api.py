@@ -405,7 +405,7 @@ class Msgrpc:
                 self.util.print_message(FAIL, 'MsfRPC: Not Authenticated.')
                 exit(1)
         if meth != 'auth.login':
-            option.insert(0, self.token)
+            option.insert(0, self.token.decode("ascii"))
         option.insert(0, meth)
         return option
 
