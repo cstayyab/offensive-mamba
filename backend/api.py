@@ -428,6 +428,7 @@ class Msgrpc:
         resp = {}
         for key, value in decoded_res.items():
             decoded_res[bytes(key, "ascii")] = bytes(value, "ascii")
+        print(resp)
         return msgpack.packb(resp)
         # print(option)
         # params = msgpack.packb(option)
