@@ -336,7 +336,7 @@ def send_command(username, data):
     all_requests[request_id]['request'] = data
     print(connected_clients)
     sid = find_sid_by_username(username)
-    print(username, json.dumps(data))
+    print(username,data)
     if sid is False:
         return False
     socketIOServer.emit('request', json.dumps(data), to=sid)
