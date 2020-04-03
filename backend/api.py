@@ -1509,11 +1509,13 @@ class MetasploitCannon(CannonPlug):
 
 
 if __name__ == '__main__':
-
+    import logging
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
     FlaskAPP = FlaskAPI()
     CORS(FlaskAPP)
     # APP = socketio.WSGIApp(socketIOServer, FlaskAPP)
     # # APP.wsgi_app.run()
     # eventlet.wsgi.server(eventlet.listen(('', 8080)), APP)
     FlaskAPP.wsgi_app = socketio.WSGIApp(socketIOServer, FlaskAPP.wsgi_app)
-    FlaskAPP.run(host="0.0.0.0", port=8080, debug=True, threaded=True)
+    FlaskAPP.run(host="0.0.0.0", port=8080, debug=False, threaded=True)
