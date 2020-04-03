@@ -397,7 +397,7 @@ class Msgrpc:
 
         # Send request.
         resp = self.send_request(meth, option, origin_option)
-        return msgpack.unpackb(resp.read())
+        return msgpack.unpackb(resp)
 
     def set_api_option(self, meth, option):
         if meth != 'auth.login':
