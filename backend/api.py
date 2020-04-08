@@ -414,8 +414,8 @@ class Msgrpc:
     def send_request(self, meth, option, origin_option):
         options_meta = []
         for op in option:
-            op_res = {'type': type(op)}
-            if type(op) == "bytes":
+            op_res = {'type': type(op).__name__}
+            if type(op).__name__ == "bytes":
                 op_res['value'] = op.decode('ascii')
             else:
                 op_res['value'] = op
