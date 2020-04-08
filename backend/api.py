@@ -393,12 +393,7 @@ class Msgrpc:
     # Call RPC API.
     def call(self, meth, origin_option):
         # Set API option.
-        bytes_option = copy.deepcopy(origin_option)
-        option = []
-        for op in bytes_option:
-            if type(op) == bytes:
-                op = op.decode('ascii')
-            option.append(op)
+        option = copy.deepcopy(origin_option)
         option = self.set_api_option(meth, option)
 
         # Send request.
@@ -411,15 +406,23 @@ class Msgrpc:
                 self.util.print_message(FAIL, 'MsfRPC: Not Authenticated.')
                 exit(1)
         if meth != 'auth.login':
-            option.insert(0, self.token.decode("ascii"))
+            option.insert(0, self.token)
         option.insert(0, meth)
         return option
 
     # Send HTTP request.
     def send_request(self, meth, option, origin_option):
+        options_meta = []
+        for op in option:
+            op_res = {'type': type(op)}
+            if type(op) == "bytes":
+                op_res['value'] = op.decode('ascii')
+            else:
+                op_res['value'] = op
+            options_meta.append(op_res)
         response = send_command(self.username, {
             "method": meth,
-            "option": option,
+            "option": options_meta,
             # "origin_option": origin_option,
             "service": "msgrpc",
             "uri": self.uri,
@@ -430,14 +433,21 @@ class Msgrpc:
             #     self.login(self.msgrpc_user, self.msgrpc_pass)
             print(response)
             exit(1)
-        decoded_res = response['resp']
+        decoded_res = response['decoded_res']
         resp = {}
-        for key, value in decoded_res.items():
-            if key != "" and type(key) == str:
-                key = bytes(key, "ascii")
-            if value != "" and type(value) == str:
-                value = bytes(value, "ascii")
+        for op in decoded_res:
+            key = op[0]
+            value = op[1]
+            if key['type'] == "bytes":
+                key = bytes(key['value'], 'ascii')
+            else:
+                key = key['value']
+            if value['type'] == "bytes":
+                value = bytes(value['value'], 'ascii')
+            else:
+                value = value['value']
             resp[key] = value
+            
         print(resp)
         return msgpack.packb(resp)
         # print(option)
