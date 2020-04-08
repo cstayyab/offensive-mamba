@@ -310,10 +310,13 @@ def response(sid, data):
     if type(data) == str:
         try:
             res = json.loads(data)
-        except:
             all_requests[res['request_id']]['response'] = data
+        except:
+            pass
+    elif type(data) == dict:
+        all_requests[data['request_id']]['response'] = data
     else:
-        all_requests[res['request_id']]['response'] = data
+        print("Invalid Data Received")
     
 
 
@@ -434,8 +437,7 @@ class Msgrpc:
             "uri": self.uri,
             "headers": self.headers
         })
-        if type(response) == bytes:
-            return response
+        return response['data']
         # if response['success'] == False:
         #     # if response['reason'] == "auth" and meth != 'auth.login':
         #     #     self.login(self.msgrpc_user, self.msgrpc_pass)
