@@ -433,7 +433,7 @@ class Msgrpc:
             #     self.login(self.msgrpc_user, self.msgrpc_pass)
             print(response)
             exit(1)
-        decoded_res = response['decoded_res']
+        decoded_res = response['resp']
         resp = {}
         for op in decoded_res:
             key = op[0]
