@@ -311,9 +311,9 @@ def response(sid, data):
         try:
             res = json.loads(data)
         except:
-            all_requests[res['request_id']]['response'] = res
+            all_requests[res['request_id']]['response'] = data
     else:
-        all_requests[res['request_id']]['response'] = res
+        all_requests[res['request_id']]['response'] = data
     
 
 
