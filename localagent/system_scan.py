@@ -42,7 +42,7 @@ class SystemScan:
         return fname
 
 if __name__ == "__main__":
-    n = SystemScan("172.28.128.3")
+    n = SystemScan("115.186.176.141")
     n.start_scan()
     f = n.get_xml_in_file()
     print(f)
