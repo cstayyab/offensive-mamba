@@ -428,28 +428,30 @@ class Msgrpc:
             "uri": self.uri,
             "headers": self.headers
         })
-        if response['success'] == False:
-            # if response['reason'] == "auth" and meth != 'auth.login':
-            #     self.login(self.msgrpc_user, self.msgrpc_pass)
-            print(response)
-            exit(1)
-        decoded_res = response['resp']
-        resp = {}
-        for op in decoded_res:
-            key = op[0]
-            value = op[1]
-            if key['type'] == "bytes":
-                key = bytes(key['value'], 'ascii')
-            else:
-                key = key['value']
-            if value['type'] == "bytes":
-                value = bytes(value['value'], 'ascii')
-            else:
-                value = value['value']
-            resp[key] = value
+        if type(response) == bytes:
+            return response
+        # if response['success'] == False:
+        #     # if response['reason'] == "auth" and meth != 'auth.login':
+        #     #     self.login(self.msgrpc_user, self.msgrpc_pass)
+        #     print(response)
+        #     exit(1)
+        # decoded_res = response['resp']
+        # resp = {}
+        # for op in decoded_res:
+        #     key = op[0]
+        #     value = op[1]
+        #     if key['type'] == "bytes":
+        #         key = bytes(key['value'], 'ascii')
+        #     else:
+        #         key = key['value']
+        #     if value['type'] == "bytes":
+        #         value = bytes(value['value'], 'ascii')
+        #     else:
+        #         value = value['value']
+        #     resp[key] = value
             
-        print(resp)
-        return msgpack.packb(resp)
+        # print(resp)
+        # return msgpack.packb(resp)
         # print(option)
         # params = msgpack.packb(option)
         # resp = ''
