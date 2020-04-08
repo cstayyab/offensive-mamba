@@ -307,9 +307,14 @@ def message(sid, data):
 
 @socketIOServer.event
 def response(sid, data):
-    print("Type of Response: ",  type(data).__name__)
-    res = json.loads(data)
-    all_requests[res['request_id']]['response'] = res
+    if type(data) == str:
+        try:
+            res = json.loads(data)
+        except:
+            all_requests[res['request_id']]['response'] = res
+    else:
+        all_requests[res['request_id']]['response'] = res
+    
 
 
 @socketIOServer.event
