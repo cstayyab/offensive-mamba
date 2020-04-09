@@ -258,7 +258,7 @@ class FlaskAPI(Flask):
 
 
 def scan_all_systems(username):
-    system = "172.18.0.2"
+    system = "172.19.0.2"
     nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
     print(nmap_response)
     nmap_file = nmap_response['localfile']
