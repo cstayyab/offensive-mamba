@@ -346,10 +346,10 @@ def send_command(username, data):
     all_requests[request_id]['request'] = data
     print(connected_clients)
     sid = find_sid_by_username(username)
-    print(username,data)
+    # print(username,data)
     if sid is False:
         return False
-    socketIOServer.emit('request', json.dumps(data), to=sid)
+    socketIOServer.emit('request', data, to=sid)
     socketIOServer.sleep(0)
     while ('response' not in all_requests[request_id]):
         if sid not in connected_clients:
@@ -431,8 +431,7 @@ class Msgrpc:
             options_meta.append(op_res)
         response = send_command(self.username, {
             "method": meth,
-            "option": options_meta,
-            # "origin_option": origin_option,
+            "option": option,
             "service": "msgrpc",
             "uri": self.uri,
             "headers": self.headers
