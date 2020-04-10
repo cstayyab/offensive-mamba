@@ -31,6 +31,14 @@ def ip4_addresses():
 
 
 def service_get_agentip(req):
+    response = {
+        'request_id': req['request_id'],
+        'service': 'agent_ip',
+        'success': True,
+        'agent_ip': '172.19.0.1'
+    }
+    sio.emit('response', data=response)
+    return
     all_ips = ip4_addresses()
     target_ip = req['ip']
     matches = [0,0,0,0]
@@ -101,7 +109,7 @@ def msgrpc_service(req):
             "success": False,
             "reason": "Config File not found!"
         }
-        sio.emit("response", data=json.dumps(response))    
+        sio.emit("response", data=response)    
         return
     meth = req['method']
     if meth == 'auth.login':
@@ -110,20 +118,20 @@ def msgrpc_service(req):
     uri = req['uri']
     # origin_option = req['origin_option']
     headers = req['headers']
-    if meth != 'auth.login':
-        option = []
-        for op in options_meta:
-            if op['type'] == "bytes":
-                option.append(bytes(op['value'], "utf-8"))
-            else:
-                option.append(op['value'])
-    else:
-        option = req['option']
+    # if meth != 'auth.login':
+    #     option = []
+    #     for op in options_meta:
+    #         if op['type'] == "bytes":
+    #             option.append(bytes(op['value'], "utf-8"))
+    #         else:
+    #             option.append(op['value'])
+    # else:
+    option = req['option']
     params = msgpack.packb(option)
     resp = ''
     
     
-    host = "172.18.0.1"
+    host = "172.19.0.1"
     port = int(config['Common']['server_port'])
     # client = http.client.HTTPSConnection(host, port)
     try:
@@ -184,7 +192,8 @@ def disconnect():
 
 @sio.event
 def request(data):
-    req = json.loads(data)
+    # req = json.loads(data)
+    req = data
     if req['service'] == "nmap":
         service_nmap(req)
     elif req['service'] == "msgrpc":
