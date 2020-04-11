@@ -351,7 +351,7 @@ def send_command(username, data, retries=5):
     sid = find_sid_by_username(username)
     # print(username,data)
     if sid is False:
-        return False
+        return {'success': False, 'error': 'Client Disconnected', 'reason': 'Client Disconnected'}
     socketIOServer.emit('request', data, to=sid)
     socketIOServer.sleep(0)
     while ('response' not in all_requests[request_id]):
@@ -359,10 +359,12 @@ def send_command(username, data, retries=5):
             all_requests.pop(request_id, None)
             if retries == 5:
                 retrying_clients.append(username)
-            if retries > 0:
+            while retries > 0:
                 print("Waiting for " + username + " to reconnect...")
                 time.sleep(3)
-                return send_command(username, data, retries-1)
+                if find_sid_by_username(username) is True:
+                    return send_command(username, data, retries-1)
+                retries -= 1
             retrying_clients.remove(username)
             return {'success': False, 'error': 'Client Disconnected', 'reason': 'Client Disconnected'}
     response = all_requests[request_id]['response']
