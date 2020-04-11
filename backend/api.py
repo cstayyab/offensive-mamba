@@ -431,6 +431,7 @@ class Msgrpc:
             "headers": self.headers
         })
         if response['success'] is False:
+            print(response)
             self.util.print_message(FAIL, "Error from Agent: " + response['reason'])
             sys.exit()
         return response['data']
