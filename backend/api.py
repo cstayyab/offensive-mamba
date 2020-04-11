@@ -31,7 +31,7 @@ DBHANLDE = DatabaseHandler()
 
 connected_clients = {}
 all_requests = {}
-
+retrying_clients = []
 socketIOServer = socketio.Server(cors_allowed_origins='*', async_mode='threading')
 
 
@@ -292,7 +292,8 @@ def connect(sid, environ):
             {'reason': response['error']}), to=sid)
     connected_clients[str(sid)] = {
         'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
-    
+    if auth_data['username'] in retrying_clients:
+        return
     job = lambda username=auth_data['username']: scan_all_systems(username)
     user_thread = threading.Thread(daemon=False, target=job)
     user_thread.name = "mainthread_" + auth_data['username']
@@ -341,7 +342,7 @@ def find_sid_by_username(username):
     return False
 
 
-def send_command(username, data):
+def send_command(username, data, retries=5):
     request_id = str(uuid.uuid4())
     data['request_id'] = request_id
     all_requests[request_id] = {}
@@ -356,7 +357,14 @@ def send_command(username, data):
     while ('response' not in all_requests[request_id]):
         if sid not in connected_clients:
             all_requests.pop(request_id, None)
-            return {'success': False, 'error': 'Client Disconnected'}
+            if retries == 5:
+                retrying_clients.append(username)
+            if retries > 0:
+                print("Waiting for " + username + " to reconnect...")
+                time.sleep(3)
+                return send_command(username, data, retries-1)
+            retrying_clients.remove(username)
+            return {'success': False, 'error': 'Client Disconnected', 'reason': 'Client Disconnected'}
     response = all_requests[request_id]['response']
     all_requests.pop(request_id, None)
     return response
