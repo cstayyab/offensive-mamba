@@ -981,10 +981,12 @@ class MetasploitCannon(CannonPlug):
         
         sessions_list = []
         keys = self.target_tree.keys()
+        print("All Ports List:" + str(keys))
         for key in keys:
             try:
                 _ = int(key)  # Test if it is a valid port number
-            except:
+            except Exception as ex:
+                print(ex)
                 continue
             self.util.print_message(
                 NOTE, "Trying to enter using port " + key + "...")
