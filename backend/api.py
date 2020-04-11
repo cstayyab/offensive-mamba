@@ -257,6 +257,8 @@ class FlaskAPI(Flask):
 
 
 
+user_threads = {}
+
 def scan_all_systems(username):
     system = "172.19.0.2"
     nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
@@ -294,7 +296,7 @@ def connect(sid, environ):
     job = lambda username=auth_data['username']: scan_all_systems(username)
     user_thread = threading.Thread(daemon=False, target=job)
     user_thread.name = "mainthread_" + auth_data['username']
-    # user_threads.append(user_thread)
+    user_threads[auth_data['username']] = user_thread
     user_thread.start()
 
 
@@ -325,6 +327,7 @@ def disconnect(sid):
     if str(sid) in connected_clients:
         client = connected_clients[str(sid)]
         DBHANLDE.change_agent_ip(client['username'], None)
+        user_threads[client['username']].exit()
         print(client['username'] +
               "(" + client['agent_ip'] + ")" + " disconnected")
         del connected_clients[str(sid)]
