@@ -327,7 +327,6 @@ def disconnect(sid):
     if str(sid) in connected_clients:
         client = connected_clients[str(sid)]
         DBHANLDE.change_agent_ip(client['username'], None)
-        user_threads[client['username']].exit()
         print(client['username'] +
               "(" + client['agent_ip'] + ")" + " disconnected")
         del connected_clients[str(sid)]
@@ -424,14 +423,6 @@ class Msgrpc:
 
     # Send HTTP request.
     def send_request(self, meth, option, origin_option):
-        options_meta = []
-        for op in option:
-            op_res = {'type': type(op).__name__}
-            if type(op).__name__ == "bytes":
-                op_res['value'] = op.decode('ascii')
-            else:
-                op_res['value'] = op
-            options_meta.append(op_res)
         response = send_command(self.username, {
             "method": meth,
             "option": option,
@@ -439,6 +430,9 @@ class Msgrpc:
             "uri": self.uri,
             "headers": self.headers
         })
+        if response['success'] is False:
+            self.util.print_message(FAIL, "Error from Agent: " + response['reason'])
+            sys.exit()
         return response['data']
         # if response['success'] == False:
         #     # if response['reason'] == "auth" and meth != 'auth.login':
