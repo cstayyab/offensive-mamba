@@ -770,7 +770,7 @@ class MetasploitCannon(CannonPlug):
         self.save_file = os.path.join(
             self.save_path, config['Common']['save_file'])
         self.data_path = os.path.join(
-            full_dir_path, config['Common']['data_path'])
+            full_dir_path, config['Common']['data_path'], username)
         if os.path.exists(self.data_path) is False:
             os.mkdir(self.data_path)
         self.plot_file = os.path.join(
