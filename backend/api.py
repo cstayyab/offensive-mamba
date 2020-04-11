@@ -991,8 +991,8 @@ class MetasploitCannon(CannonPlug):
             self.util.print_message(
                 NOTE, "Trying to enter using port " + key + "...")
             for exploit in self.target_tree[key]['exploit']:
-                if not (exploit == "exploit/unix/irc/unreal_ircd_3281_backdoor"):
-                    continue
+                #if not (exploit == "exploit/unix/irc/unreal_ircd_3281_backdoor"):
+                #    continue
                 if exploit[8:] not in self.exploit_tree.keys():
                     continue
                 self.util.print_message(
