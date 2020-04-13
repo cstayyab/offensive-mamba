@@ -262,6 +262,7 @@ user_threads = {}
 def scan_all_systems(username):
     while True:
         systems: list = DBHANDLE.get_local_systems(username).get("data", None)
+        print("Systems: " + str(systems))
         for system in systems:
             nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
             print(nmap_response)
