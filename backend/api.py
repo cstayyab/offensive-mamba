@@ -260,16 +260,20 @@ class FlaskAPI(Flask):
 user_threads = {}
 
 def scan_all_systems(username):
-    system = "172.18.0.2"
-    nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
-    print(nmap_response)
-    nmap_file = nmap_response['localfile']
-    nmap_file_contents = nmap_response['scandata']
-    agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
-    print(agent_ip_response)
-    agent_ip = agent_ip_response['agent_ip'] # "127.0.0.1"
-    msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file, nmap_file_contents)
-    msfcannon.run()
+    while True:
+        systems: list = DBHANDLE.get_local_systems(username).get("data", None)
+        for system in systems:
+            nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
+            print(nmap_response)
+            nmap_file = nmap_response['localfile']
+            nmap_file_contents = nmap_response['scandata']
+            agent_ip_response = send_command(username, data={'service': 'agent_ip', 'ip': system})
+            if agent_ip_response['success'] == False:
+                print("No route found to target.")
+                continue
+            agent_ip = agent_ip_response['agent_ip'] # "127.0.0.1"
+            msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file, nmap_file_contents)
+            msfcannon.run()
 
 
 @socketIOServer.event
@@ -438,6 +442,7 @@ class Msgrpc:
             "option": option,
             "service": "msgrpc",
             "uri": self.uri,
+            "agent": self.host,
             "headers": self.headers
         })
         if response['success'] is False:
@@ -805,7 +810,7 @@ class MetasploitCannon(CannonPlug):
         self.source_host = server_host
 
         # Create Msgrpc instance.
-        self.client = Msgrpc({'username': username})
+        self.client = Msgrpc({'username': username, 'host': self.agent_ip})
 
         # Log in to RPC Server.
         self.client.login(self.msgrpc_user, self.msgrpc_pass)
