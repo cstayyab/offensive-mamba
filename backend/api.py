@@ -27,7 +27,7 @@ import codecs
 import json
 import re
 from bs4 import BeautifulSoup
-DBHANLDE = DatabaseHandler()
+DBHANDLE = DatabaseHandler()
 
 connected_clients = {}
 all_requests = {}
@@ -60,7 +60,7 @@ class LoginView(FlaskView):
         username: str = data.get("username", "")
         username = username.lower()
         password = data.get("password", "")
-        return DBHANLDE.login(username, password), 200
+        return DBHANDLE.login(username, password), 200
 
 
 class SignupView(FlaskView):
@@ -79,7 +79,7 @@ class SignupView(FlaskView):
         emailaddress: str = data.get("emailaddress", "")
         username = username.lower()
         emailaddress = emailaddress.lower()
-        return DBHANLDE.register(firstname, lastname, username, emailaddress, password, companyname), 200
+        return DBHANDLE.register(firstname, lastname, username, emailaddress, password, companyname), 200
 
 
 class RecoverView(FlaskView):
@@ -92,21 +92,21 @@ class RecoverView(FlaskView):
     def generate_code(self):
         if 'username' not in request.json:
             return {'success': False, 'error': 'Please provide your username to recover your account.'}
-        if not DBHANLDE.username_exists(request.json['username']):
+        if not DBHANDLE.username_exists(request.json['username']):
             return {'success': False, 'error': 'Username is not registered.'}
-        return DBHANLDE.send_password_recovery(request.json['username'])
+        return DBHANDLE.send_password_recovery(request.json['username'])
 
     @route('/verify', methods=['POST'])
     def verify_code(self):
         if 'username' not in request.json:
             return {'success': False, 'error': 'Please provide your username to recover your account.'}
-        if not DBHANLDE.username_exists(request.json['username']):
+        if not DBHANDLE.username_exists(request.json['username']):
             return {'success': False, 'error': 'Username is not registered.'}
         if 'code' not in request.json:
             return {'success': False, 'error': 'Please provide recovery code sent to your email address.'}
         if 'newpassword' not in request.json:
             return {'success': False, 'error': 'Please provide new password to set.'}
-        return DBHANLDE.recover_account(request.json['username'], request.json['code'], request.json['newpassword'])
+        return DBHANDLE.recover_account(request.json['username'], request.json['code'], request.json['newpassword'])
 
 
 class UserView(FlaskView):
@@ -115,7 +115,7 @@ class UserView(FlaskView):
     def post(self):
         if (not FlaskAPI.check_token()) or "username" not in request.json.keys():
             return {"status": False, "error": "You are not logged in to access this resource."}, 403
-        return DBHANLDE.get_user_info(request.json['username'])
+        return DBHANDLE.get_user_info(request.json['username'])
 
     @route('/verifyemail', methods=['POST'])
     def verifyemail(self):
@@ -124,7 +124,7 @@ class UserView(FlaskView):
         if "code" in request.json.keys():
             try:
                 _ = int(request.json['code'])
-                return DBHANLDE.verify_email_address(request.json['username'], int(request.json['code']))
+                return DBHANDLE.verify_email_address(request.json['username'], int(request.json['code']))
             except:
                 return {"status": False, "error": "Verification Code must only consist of numbers."}
         return {"status": False, "error": "Please provide verification code."}
@@ -134,7 +134,7 @@ class UserView(FlaskView):
         if (not FlaskAPI.check_token()) or "username" not in request.json.keys():
             return {"status": False, "error": "You are not logged in to access this resource."}, 403
         if "ip" in request.json.keys():
-            return DBHANLDE.change_agent_ip(request.json['username'], request.json['ip'])
+            return DBHANDLE.change_agent_ip(request.json['username'], request.json['ip'])
         return {"status": False, "error": "Please provide Public IP Address of agent."}
 
     @route('/changepassword', methods=['POST'])
@@ -144,13 +144,13 @@ class UserView(FlaskView):
         new_password = request.json.get("newpassword", "")
         if new_password == "":
             return {'status': False, "error": "Password cannot be empty."}
-        return DBHANLDE.change_password(request.json['username'], new_password)
+        return DBHANDLE.change_password(request.json['username'], new_password)
 
     # @route('/verifypublicip', methods=['POST'])
     # def verifypublicip(self):
     #     if (not FlaskAPI.check_token()) or "username" not in request.json.keys():
     #         return {"status": False, "error": "You are not logged in to access this resource."}, 403
-    #     return DBHANLDE.verify_public_ip(request.json['username'])
+    #     return DBHANDLE.verify_public_ip(request.json['username'])
 
 
 class AgentView(FlaskView):
@@ -163,7 +163,7 @@ class AgentView(FlaskView):
             return {'success': False, 'error': "You are no logged in to access this resource."}
         if 'localip' not in request.json:
             return {'success': False, 'error': "Please provide a valid Local IP."}
-        return DBHANLDE.add_local_system(request.json['username'], request.json['localip'])
+        return DBHANDLE.add_local_system(request.json['username'], request.json['localip'])
 
     @route('/deletelocalsystem', methods=['POST'])
     def deletelocalsystem(self):
@@ -171,7 +171,7 @@ class AgentView(FlaskView):
             return {'success': False, 'error': "You are not logged in to access this resource."}
         if 'localip' not in request.json:
             return {'success': False, 'error': "Please provide a valid Local IP."}
-        return DBHANLDE.remove_local_system(request.json['username'], request.json['localip'])
+        return DBHANDLE.remove_local_system(request.json['username'], request.json['localip'])
 
     @route('/changelocalsystemip', methods=['POST'])
     def changelocalsystemip(self):
@@ -181,18 +181,18 @@ class AgentView(FlaskView):
             return {'success': False, 'error': "Please provide a valid old Local IP."}
         if 'newlocalip' not in request.json:
             return {'success': False, 'error': "Please provide a valid new Local IP."}
-        return DBHANLDE.change_local_system_ip(request.json['username'], request.json['oldlocalip'], request.json['newlocalip'])
+        return DBHANDLE.change_local_system_ip(request.json['username'], request.json['oldlocalip'], request.json['newlocalip'])
 
     @route('/logs', methods=['POST'])
     def get_all_logs(self):
         if "username" not in request.json.keys():
             return {'success': False, 'error': "You are not logged in to access this resource."}
-        return DBHANLDE.get_scanning_events_by_username(request.json['username'])
+        return DBHANDLE.get_scanning_events_by_username(request.json['username'])
 
     def post(self):
         if "username" not in request.json.keys():
             return {'success': False, 'error': "You are not logged in to access this resource."}
-        return DBHANLDE.get_local_systems(request.json['username'])
+        return DBHANDLE.get_local_systems(request.json['username'])
 
     @route('/getsystemstatus', methods=['POST'])
     def get_current_status(self):
@@ -200,7 +200,7 @@ class AgentView(FlaskView):
             return {'success': False, 'error': "You are not logged in to access this resource."}
         if 'localip' not in request.json:
             return {'success': False, 'error': "Please provide a valid Local IP."}
-        return DBHANLDE.get_local_system_status(request.json['username'], request.json['localip'])
+        return DBHANDLE.get_local_system_status(request.json['username'], request.json['localip'])
 
     @route('/exploitlogs', methods=['POST'])
     def get_exploitation_logs(self):
@@ -208,7 +208,7 @@ class AgentView(FlaskView):
             return {'success': False, 'error': "You are not logged in to access this resource."}
         if not "localip" in request.json:
             return {'success': False, 'error': "Please provide IP of Local System."}
-        return DBHANLDE.get_exploitation_data(request.json['username'], request.json['localip'])
+        return DBHANDLE.get_exploitation_data(request.json['username'], request.json['localip'])
 
     @route('/latestexploitlogs', methods=['POST'])
     def get_latest_exploitation_logs(self):
@@ -216,7 +216,7 @@ class AgentView(FlaskView):
             return {'success': False, 'error': "You are not logged in to access this resource."}
         if not "localip" in request.json:
             return {'success': False, 'error': "Please provide IP of Local System."}
-        return DBHANLDE.get_latest_exploitation_data(request.json['username'], request.json['localip'])
+        return DBHANDLE.get_latest_exploitation_data(request.json['username'], request.json['localip'])
 
 
 class FlaskAPI(Flask):
@@ -244,7 +244,7 @@ class FlaskAPI(Flask):
 
     # @staticmethod
     # def check_agent_ip(username: str) -> bool:
-    #     data = DBHANLDE.get_agent_ip(username)
+    #     data = DBHANDLE.get_agent_ip(username)
     #     if not data['success']:
     #         request.json['ipverified'] = False
     #         return False
@@ -290,7 +290,7 @@ def connect(sid, environ):
         socketIOServer.emit('connection_failed', json.dumps(
             {'reason': 'Invalid Token!'}), to=sid)
         socketIOServer.disconnect(sid)
-    response = DBHANLDE.change_agent_ip(
+    response = DBHANDLE.change_agent_ip(
         auth_data['username'], environ['REMOTE_ADDR'])
     if(response['success'] == False):
         socketIOServer.emit('connection_failed', json.dumps(
@@ -332,7 +332,7 @@ def response(sid, data):
 def disconnect(sid):
     if str(sid) in connected_clients:
         client = connected_clients[str(sid)]
-        DBHANLDE.change_agent_ip(client['username'], None)
+        DBHANDLE.change_agent_ip(client['username'], None)
         print(client['username'] +
               "(" + client['agent_ip'] + ")" + " disconnected")
         del connected_clients[str(sid)]
@@ -1031,7 +1031,7 @@ class MetasploitCannon(CannonPlug):
                         result = self.execute_exploit(
                             payload, target, target_info)
                         if result is not None:
-                            exploit_event = DBHANLDE.insert_exploitation_log(self.msgrpc_user, self.rhost, exploit, payload, 'Metasploit', str(key), True, self.scanningevent) # TODO Get Dict instead of List
+                            exploit_event = DBHANDLE.insert_exploitation_log(self.msgrpc_user, self.rhost, exploit, payload, 'Metasploit', str(key), True, self.scanningevent) # TODO Get Dict instead of List
                             result['exploit_event'] = exploit_event
                             sessions_list.append(result)
                             self.util.print_message(NOTE, "Got a session")
@@ -1339,7 +1339,7 @@ class MetasploitCannon(CannonPlug):
         try:
             port_list, proto_list, port_info, closed_ports = self.get_scan_info()
         except Exception as e:
-            DBHANLDE.insert_scanning_log(dict(), self.msgrpc_user, self.rhost, "Unknown", list())
+            DBHANDLE.insert_scanning_log(dict(), self.msgrpc_user, self.rhost, "Unknown", list())
             self.util.print_message(FAIL, str(e))
             raise e
         target_tree = {'rhost': self.rhost, 'os_type': self.os_real}
@@ -1537,7 +1537,7 @@ class MetasploitCannon(CannonPlug):
             del openPorts[key]['target_path']
             del openPorts[key]['exploit']
         os = str(self.os_type[self.os_real])
-        self.scanningevent = DBHANLDE.insert_scanning_log(openPorts, self.msgrpc_user, self.rhost, os, closed_ports)['event']
+        self.scanningevent = DBHANDLE.insert_scanning_log(openPorts, self.msgrpc_user, self.rhost, os, closed_ports)['event']
 
 
 
