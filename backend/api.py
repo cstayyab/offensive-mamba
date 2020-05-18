@@ -274,7 +274,7 @@ def scan_all_systems(username):
                 continue
             agent_ip = agent_ip_response['agent_ip'] # "127.0.0.1"
             msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file, nmap_file_contents)
-            msfcannon.run()
+            msfcannon.temp_run() # msfcannon.run()
 
 
 @socketIOServer.event
@@ -743,7 +743,9 @@ class Msgrpc:
 
 class MetasploitCannon(CannonPlug):
     all_exploit_list = []
+    app_post_exploit_list = []
     loading_exploit_list = False
+    loading_post_exploit_list = False
 
     # def __init__(self, agent_ip: str, target_ip: str, username: str, password: str, nmap_file: str):
     def __init__(self, agent_ip:str, target_ip: str, username: str, nmap_file: str, nmap_contents: str):
@@ -982,6 +984,9 @@ class MetasploitCannon(CannonPlug):
                 return None
         else:
             return None
+    def temp_run(self):
+        self.load_post_exploit_list()
+        return
 
     def run(self):
         # self.scan_the_target()
@@ -1316,6 +1321,51 @@ class MetasploitCannon(CannonPlug):
         fout.close()
         self.util.print_message(OK, 'Saved exploit list.')
         MetasploitCannon.loading_exploit_list = False
+    
+    def load_post_exploit_list(self):
+        while(MetasploitCannon.loading_post_exploit_list):
+            time.sleep(0.1)
+        if(len(MetasploitCannon.all_post_exploit_list) > 0):
+            return
+        MetasploitCannon.loading_post_exploit_list = True
+        if os.path.exists(os.path.join(self.data_path, 'post_exploit_list.csv')) is not False:
+            # Get exploit module list from local file.
+            local_file = os.path.join(self.data_path, 'post_exploit_list.csv')
+            self.util.print_message(
+                OK, 'Loaded post exploit list from : {}'.format(local_file))
+            fin = codecs.open(local_file, 'r', 'utf-8')
+            for item in fin:
+                MetasploitCannon.all_post_exploit_list.append(item.rstrip('\n'))
+            fin.close()
+            MetasploitCannon.loading_post_exploit_list = False
+            return
+
+        raw_post_exploit_list = self.client.get_module_list('post')
+        for i, post_exploit in enumerate(raw_post_exploit_list):
+            mod_info = self.client.get_module_info('post', post_exploit)
+            time.sleep(0.1)
+            try:
+                rank = mod_info[b'rank'].decode('utf-8')
+                if rank in {'excellent', 'great' 'good'}:
+                    MetasploitCannon.all_post_exploit_list.append(post_exploit)
+                    self.util.print_message(
+                        OK, 'Post-Exploit {}/{} Loaded: {}'.format(i+1, len(raw_post_exploit_list), post_exploit))
+                else:
+                    self.util.print_message(
+                        WARNING, 'Post Exploit {}/{} Skipped: {}'.format(i+1, len(raw_post_exploit_list), post_exploit))
+            except Exception as e:
+                self.util.print_exception(e, 'Failed: {}'.format(mod_info))
+        # Save Exploit module list to local file.
+        self.util.print_message(OK, 'Total loaded post exploit module: {}'.format(
+            str(len(MetasploitCannon.all_post_exploit_list))))
+        fout = codecs.open(os.path.join(
+            self.data_path, 'post_exploit_list.csv'), 'w', 'utf-8')
+        for item in MetasploitCannon.all_post_exploit_list:
+            fout.write(item + '\n')
+        fout.close()
+        self.util.print_message(OK, 'Saved post exploit list.')
+        MetasploitCannon.loading_post_exploit_list = False
+
 
     def get_payload_list(self, module_name='', target_num=''):
         self.util.print_message(NOTE, 'Get payload list.')
