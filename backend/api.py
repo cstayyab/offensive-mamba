@@ -986,6 +986,7 @@ class MetasploitCannon(CannonPlug):
             return None
     def temp_run(self):
         self.load_post_exploit_list()
+        print(MetasploitCannon.all_post_exploit_list)
         return
 
     def run(self):
