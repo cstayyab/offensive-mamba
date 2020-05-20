@@ -274,7 +274,8 @@ def scan_all_systems(username):
                 continue
             agent_ip = agent_ip_response['agent_ip'] # "127.0.0.1"
             msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file, nmap_file_contents)
-            msfcannon.temp_run() # msfcannon.run()
+            msfcannon.run()
+            msfcannon.load_post_exploit_list()
 
 
 @socketIOServer.event
