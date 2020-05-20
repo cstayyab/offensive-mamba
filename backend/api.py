@@ -1199,75 +1199,84 @@ class MetasploitCannon(CannonPlug):
             return
 
         for i, exploit in enumerate(MetasploitCannon.all_exploit_list):
-            temp_target_tree = {'targets': []}
-            temp_tree = {}
+            try:
+                temp_target_tree = {'targets': []}
+                temp_tree = {}
 
-            # Set Exploit
-            use_cmd = 'use exploit/' + exploit + '\n'
-            _ = self.client.send_command(
-                self.client.console_id, use_cmd, False)
+                # Set Exploit
+                use_cmd = 'use exploit/' + exploit + '\n'
+                _ = self.client.send_command(
+                    self.client.console_id, use_cmd, False)
 
-            # Get Target
-            show_cmd = 'show targets\n'
-            target_info = ''
-            time_count = 0
-            while True:
-                target_info = self.client.send_command(
-                    self.client.console_id, show_cmd, False)
-                if 'Exploit targets' in target_info:
-                    break
-                if time_count == 5:
-                    self.util.print_message(
-                        OK, 'Timeout: {0}'.format(show_cmd))
-                    self.util.print_message(OK, 'No Target exists.')
-                    break
-                time.sleep(1.0)
-                time_count += 1
-            target_list = self.cutting_strings(
-                r'\s*([0-9]{1,3}) .*[a-z|A-Z|0-9].*[\r\n]', target_info)
-            for target in target_list:
-                # Get payload list
-                payload_list = self.client.get_target_compatible_payload_list(
-                    exploit, int(target))
-                temp_tree[target] = payload_list
+                # Get Target
+                show_cmd = 'show targets\n'
+                target_info = ''
+                time_count = 0
+                while True:
+                    target_info = self.client.send_command(
+                        self.client.console_id, show_cmd, False)
+                    if 'Exploit targets' in target_info:
+                        break
+                    if time_count == 5:
+                        self.util.print_message(
+                            OK, 'Timeout: {0}'.format(show_cmd))
+                        self.util.print_message(OK, 'No Target exists.')
+                        break
+                    time.sleep(1.0)
+                    time_count += 1
+                target_list = self.cutting_strings(
+                    r'\s*([0-9]{1,3}) .*[a-z|A-Z|0-9].*[\r\n]', target_info)
+                for target in target_list:
+                    # Get payload list
+                    payload_list = self.client.get_target_compatible_payload_list(
+                        exploit, int(target))
+                    temp_tree[target] = payload_list
 
-            # Get Options
-            options = self.client.get_module_options('exploit', exploit)
-            key_list = options.keys()
-            option = {}
-            # print(key_list)
-            for key in key_list:
-                sub_option = {}
-                sub_key_list = options[key].keys()
-                # print(sub_key_list)
-                for sub_key in sub_key_list:
-                    if isinstance(options[key][sub_key], list):
-                        # print(options[key][sub_key])
-                        end_option = []
-                        for end_key in options[key][sub_key]:
-                            end_option.append(end_key.decode('utf-8'))
-                        sub_option[sub_key.decode('utf-8')] = end_option
-                    else:
-                        end_option = {}
-                        if isinstance(options[key][sub_key], bytes):
-                            sub_option[sub_key.decode(
-                                'utf-8')] = options[key][sub_key].decode('utf-8')
+                # Get Options
+                options = self.client.get_module_options('exploit', exploit)
+                key_list = options.keys()
+                option = {}
+                # print(key_list)
+                for key in key_list:
+                    sub_option = {}
+                    sub_key_list = options[key].keys()
+                    # print(sub_key_list)
+                    for sub_key in sub_key_list:
+                        if isinstance(options[key][sub_key], list):
+                            # print(options[key][sub_key])
+                            end_option = []
+                            for end_key in options[key][sub_key]:
+                                end_option.append(end_key.decode('utf-8'))
+                            sub_option[sub_key.decode('utf-8')] = end_option
                         else:
-                            sub_option[sub_key.decode(
-                                'utf-8')] = options[key][sub_key]
-                sub_option['user_specify'] = ""
-                option[key.decode('utf-8')] = sub_option
+                            end_option = {}
+                            if isinstance(options[key][sub_key], bytes):
+                                sub_option[sub_key.decode(
+                                    'utf-8')] = options[key][sub_key].decode('utf-8')
+                            else:
+                                sub_option[sub_key.decode(
+                                    'utf-8')] = options[key][sub_key]
+                    sub_option['user_specify'] = ""
+                    option[key.decode('utf-8')] = sub_option
+                
 
-            # Add payloads and targets to exploit tree
-            temp_target_tree['target_list'] = target_list
-            temp_target_tree['target'] = temp_tree
-            temp_target_tree['options'] = option
-            exploit_tree[exploit] = temp_target_tree
-            self.util.print_message(OK, '{}/{} exploit:{}, targets:{}'.format(str(i + 1),
-                                                                              len(
-                                                                                  MetasploitCannon.all_exploit_list),
-                                                                              exploit,
-                                                                              len(target_list)))
+                # Add payloads and targets to exploit tree
+                temp_target_tree['target_list'] = target_list
+                temp_target_tree['target'] = temp_tree
+                temp_target_tree['options'] = option
+                exploit_tree[exploit] = temp_target_tree
+                self.util.print_message(OK, '{}/{} exploit:{}, targets:{}'.format(str(i + 1),
+                                                                                len(
+                                                                                    MetasploitCannon.all_exploit_list),
+                                                                                exploit,
+                                                                                len(target_list)))
+            except KeyError:
+                # Skip this Exploit
+                self.util.print_message(WARNING, '{}/{} exploit:{}, targets:{}'.format(str(i + 1),
+                                                                                len(
+                                                                                    MetasploitCannon.all_exploit_list),
+                                                                                exploit,
+                                                                                len(target_list)))
         self.exploit_tree = exploit_tree
         # Save exploit tree to local file.
         fout = codecs.open(os.path.join(
