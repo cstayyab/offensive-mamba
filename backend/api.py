@@ -743,7 +743,7 @@ class Msgrpc:
 
 class MetasploitCannon(CannonPlug):
     all_exploit_list = []
-    app_post_exploit_list = []
+    all_post_exploit_list = []
     loading_exploit_list = False
     loading_post_exploit_list = False
 
@@ -986,6 +986,7 @@ class MetasploitCannon(CannonPlug):
             return None
     def temp_run(self):
         self.load_post_exploit_list()
+        print(MetasploitCannon.all_post_exploit_list)
         return
 
     def run(self):
