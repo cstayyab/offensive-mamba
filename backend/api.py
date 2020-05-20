@@ -1238,7 +1238,7 @@ class MetasploitCannon(CannonPlug):
                 if DEBUG:
                     print("DEBUG: " + str(options))
                 if b'error' in options:
-                    self.util.print_message(WARNING, options[b'error_message'])
+                    self.util.print_message(WARNING, options[b'error_message'].decode('utf-8'))
                     continue
                 key_list = options.keys()
                 option = {}
