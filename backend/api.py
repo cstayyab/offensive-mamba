@@ -27,6 +27,7 @@ import codecs
 import json
 import re
 from bs4 import BeautifulSoup
+DEBUG = 'DEBUG' in os.environ
 DBHANDLE = DatabaseHandler()
 
 connected_clients = {}
