@@ -833,6 +833,35 @@ class MetasploitCannon(CannonPlug):
         #     self.msgrpc_user + '_' + self.rhost + '.xml'
         self.nmap_result_file = nmap_file
 
+        # Pending DB Data
+        self.db_scanning_logs = {}
+        self.db_exploitation_logs = []
+        self.sessions_list = []
+    
+    def store_to_db(self):
+        # self.db_scanning_logs = {'openports': dict(), 'username': self.msgrpc_user, 'localip': self.rhost, 'os': "Unknown", "closed_ports": list()}
+        openPorts = self.db_scanning_logs['openports']
+        username = self.db_scanning_logs['username']
+        localip = self.db_scanning_logs['localip']
+        os = self.db_scanning_logs['os']
+        closed_ports = self.db_scanning_logs['closed_ports']
+        self.scanningevent = DBHANDLE.insert_scanning_log(openPorts, username, localip, os, closed_ports)
+        if self.db_exploitation_logs != []:
+            for exploit_log in self.db_exploitation_logs:
+                username = exploit_log['username']
+                localip = exploit_log['localip']
+                exploit = exploit_log['exploit']
+                payload = exploit_log['payload']
+                port = exploit_log['port']
+                success = exploit_log['success']
+                result = exploit_log['result']
+                engine = exploit_log['engine']
+                exploit_event = DBHANDLE.insert_exploitation_log(username, localip, exploit, payload, engine, port, success, self.scanningevent)
+                result['exploit_event'] = exploit_event
+                if success == True:
+                    self.sessions_list.append(result)
+        else:
+            self.sessions_list = []
     def get_scan_info(self):
 
         # cat_cmd = 'cat ' + self.nmap_result_file + '\n'
@@ -998,13 +1027,14 @@ class MetasploitCannon(CannonPlug):
         try:
             self.get_target_info()
         except Exception as e:
+            self.store_to_db()
             self.util.print_message(FAIL, str(e))
             return
         
         # self.test_exploit("exploit/unix/irc/unreal_ircd_3281_backdoor", "cmd/unix/reverse_ruby", "6697", "0")
         # return
         
-        sessions_list = []
+        self.sessions_list = []
         keys = self.target_tree.keys()
         print("All Ports List:" + str(keys))
         for key in keys:
@@ -1039,19 +1069,19 @@ class MetasploitCannon(CannonPlug):
                         result = self.execute_exploit(
                             payload, target, target_info)
                         if result is not None:
-                            exploit_event = DBHANDLE.insert_exploitation_log(self.msgrpc_user, self.rhost, exploit, payload, 'Metasploit', str(key), True, self.scanningevent) # TODO Get Dict instead of List
-                            result['exploit_event'] = exploit_event
-                            sessions_list.append(result)
+                            self.db_exploitation_logs.append({"username": self.msgrpc_user, "localip": self.rhost, "exploit": exploit, "payload": payload, "engine": "Metasploit", "port": str(key), "succes": True, "result": result})
                             self.util.print_message(NOTE, "Got a session")
-
-        if(len(sessions_list) == 0):
+        # Store Data to DB after Exploitation is done
+        self.store_to_db()
+        if(len(self.sessions_list) == 0):
             self.util.print_message(
                 FAIL, "Got no session. Exploitation Failed...")
         else:
             self.util.print_message(
-                OK, "Bingo! Got " + str(len(sessions_list)) + " session(s).")
-            for session in sessions_list:
+                OK, "Bingo! Got " + str(len(self.sessions_list)) + " session(s).")
+            for session in self.sessions_list:
                 print(str(session) + "\n\n")
+                exit(0)
 
     def test_exploit(self, exploit, payload, port, target):
         target_info = self.set_target_info(port, exploit, target)
@@ -1406,7 +1436,10 @@ class MetasploitCannon(CannonPlug):
         try:
             port_list, proto_list, port_info, closed_ports = self.get_scan_info()
         except Exception as e:
-            DBHANDLE.insert_scanning_log(dict(), self.msgrpc_user, self.rhost, "Unknown", list())
+            # Insert these logs after Exploitation
+            # DBHANDLE.insert_scanning_log(dict(), self.msgrpc_user, self.rhost, "Unknown", list())
+            self.db_scanning_logs = {'openports': dict(), 'username': self.msgrpc_user, 'localip': self.rhost, 'os': "Unknown", "closed_ports": list()}
+            self.db_exploitation_logs = []
             self.util.print_message(FAIL, str(e))
             raise e
         target_tree = {'rhost': self.rhost, 'os_type': self.os_real}
@@ -1604,7 +1637,8 @@ class MetasploitCannon(CannonPlug):
             del openPorts[key]['target_path']
             del openPorts[key]['exploit']
         os = str(self.os_type[self.os_real])
-        self.scanningevent = DBHANDLE.insert_scanning_log(openPorts, self.msgrpc_user, self.rhost, os, closed_ports)['event']
+        # self.scanningevent = DBHANDLE.insert_scanning_log(openPorts, self.msgrpc_user, self.rhost, os, closed_ports)['event']
+        self.db_scanning_logs = {'openports': openPorts, 'username': self.msgrpc_user, 'localip': self.rhost, 'os': os, "closed_ports": closed_ports}
 
 
 
