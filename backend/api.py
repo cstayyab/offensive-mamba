@@ -1069,7 +1069,7 @@ class MetasploitCannon(CannonPlug):
                         result = self.execute_exploit(
                             payload, target, target_info)
                         if result is not None:
-                            self.db_exploitation_logs.append({"username": self.msgrpc_user, "localip": self.rhost, "exploit": exploit, "payload": payload, "engine": "Metasploit", "port": str(key), "succes": True, "result": result})
+                            self.db_exploitation_logs.append({"username": self.msgrpc_user, "localip": self.rhost, "exploit": exploit, "payload": payload, "engine": "Metasploit", "port": str(key), "success": True, "result": result})
                             self.util.print_message(NOTE, "Got a session")
         # Store Data to DB after Exploitation is done
         self.store_to_db()
