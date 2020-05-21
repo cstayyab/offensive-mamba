@@ -845,7 +845,7 @@ class MetasploitCannon(CannonPlug):
         localip = self.db_scanning_logs['localip']
         os = self.db_scanning_logs['os']
         closed_ports = self.db_scanning_logs['closed_ports']
-        self.scanningevent = DBHANDLE.insert_scanning_log(openPorts, username, localip, os, closed_ports)
+        self.scanningevent = DBHANDLE.insert_scanning_log(openPorts, username, localip, os, closed_ports)['event']
         if self.db_exploitation_logs != []:
             for exploit_log in self.db_exploitation_logs:
                 username = exploit_log['username']
