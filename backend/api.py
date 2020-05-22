@@ -265,6 +265,7 @@ def scan_all_systems(username):
         systems: list = DBHANDLE.get_local_systems(username).get("data", None)
         print("Systems: " + str(systems))
         for system in systems:
+            socketIOServer.emit("statusUpdate", data={"system": system, "statusText": "Started NMAP Scan . . .", "mode": "Running"},namespace="/socket_"+username)
             nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
             print(nmap_response)
             nmap_file = nmap_response['localfile']
@@ -279,6 +280,28 @@ def scan_all_systems(username):
             msfcannon.load_post_exploit_list()
 
 
+frontend_namespaces = {}
+
+class UserNamespaceHandler(socketio.Namespace):
+    def __init__(self, username=""):
+        super().__init__(namespace="/socket_"+username)
+        self.username = username
+    def on_connect(self, sid, environ):
+        if(not (('HTTP_AUTHORIZATION' in environ) and str(environ['HTTP_AUTHORIZATION']).startswith('Bearer '))):
+            socketIOServer.disconnect(sid)
+        token = environ['HTTP_AUTHORIZATION'][7:]
+        auth_data = {}
+        try:
+            auth_data = APIUtils.decrypt_jwt_token(token)
+        except:
+            socketIOServer.emit('connection_failed', json.dumps(
+                {'reason': 'Invalid Token!'}), to=sid)
+            socketIOServer.disconnect(sid)
+        if auth_data['username'] != self.username:
+            socketIOServer.emit('connection_failed', json.dumps(
+                {'reason': 'Invalid Username!'}), to=sid)
+            socketIOServer.disconnect(sid)
+
 @socketIOServer.event
 def connect(sid, environ):
     print('Environ', environ)
@@ -292,6 +315,7 @@ def connect(sid, environ):
         socketIOServer.emit('connection_failed', json.dumps(
             {'reason': 'Invalid Token!'}), to=sid)
         socketIOServer.disconnect(sid)
+    # TODO: Add Rooms for Reading Status of Metasploit
     response = DBHANDLE.change_agent_ip(
         auth_data['username'], environ['REMOTE_ADDR'])
     if(response['success'] == False):
@@ -301,6 +325,10 @@ def connect(sid, environ):
         'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
     if auth_data['username'] in retrying_clients:
         return
+    if auth_data['username'] not in frontend_namespaces:
+        user_namespace = UserNamespaceHandler(auth_data['username'])
+        socketIOServer.register_namespace(user_namespace)
+        frontend_namespaces[auth_data['username']] = user_namespace
     job = lambda username=auth_data['username']: scan_all_systems(username)
     user_thread = threading.Thread(daemon=False, target=job)
     user_thread.name = "mainthread_" + auth_data['username']
