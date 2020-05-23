@@ -33,7 +33,7 @@ DBHANDLE = DatabaseHandler()
 connected_clients = {}
 all_requests = {}
 retrying_clients = []
-socketIOServer = socketio.Server(cors_allowed_origins="*", async_mode='threading')
+socketIOServer = socketio.Server(cors_allowed_origins="*", async_mode='threading', cors_credentials=True)
 
 
 class BaseView(FlaskView):
