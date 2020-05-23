@@ -794,6 +794,7 @@ class MetasploitCannon(CannonPlug):
         # server_host = config['Common']['server_host'] # replace with agent_ip
         self.agent_ip = agent_ip
         server_host = self.agent_ip
+        self.username = username
 
         self.lhost = server_host
         # server_port = int(config['Common']['server_port'])
@@ -922,6 +923,7 @@ class MetasploitCannon(CannonPlug):
         # print(nmap_result)
 
         # call get_nmap_xml_contents instead
+        socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": "Fetching Scan Results . . .", "mode": "Running"},namespace="/socket_"+self.username)
         nmap_file_content = self.get_nmap_xml_contents()
         os_name = 'unknown'
         port_list = []
@@ -962,6 +964,7 @@ class MetasploitCannon(CannonPlug):
                         info_list.append('unknown')
 
         if len(port_list) == 0:
+            socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": "No Open Ports . . .", "mode": "Running"},namespace="/socket_"+self.username)
             self.util.print_message(WARNING, "No Open Port")
             self.client.termination(self.client.console_id)
             raise Exception("No Open Ports!")
@@ -985,7 +988,7 @@ class MetasploitCannon(CannonPlug):
         return port_list, proto_list, info_list, closed_ports
 
     def execute_exploit(self, selected_payload, target, target_info):
-
+        socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . .', "mode": "Running"},namespace="/socket_"+self.username)
         option = self.set_options(target_info, target, selected_payload)
         job_id, uuid = self.client.execute_module(
             'exploit', target_info['exploit'], option)
@@ -993,6 +996,7 @@ class MetasploitCannon(CannonPlug):
         if uuid is not None:
             status = self.check_running_module(job_id, uuid)
             if status == False:
+                socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . . [Failed]', "mode": "Running"},namespace="/socket_"+self.username)
                 return None
             sessions = self.client.get_session_list()
             key_list = sessions.keys()
