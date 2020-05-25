@@ -731,6 +731,8 @@ class Msgrpc:
     # Get executing meterpreter result.
     def get_meterpreter_result(self, session_id):
         ret = self.call('session.meterpreter_read', [str(session_id)])
+        if DEBUG:
+            print("Print Returned Data: " + str(ret))
         try:
             return ret[b'data'].decode('utf-8')
         except Exception as e:
