@@ -697,6 +697,8 @@ class Msgrpc:
     def execute_meterpreter(self, session_id, cmd):
         ret = self.call('session.meterpreter_write', [str(session_id), cmd])
         try:
+            if DEBUG:
+                print(ret)
             return ret[b'result'].decode('utf-8')
         except Exception as e:
             self.util.print_exception(e, 'Failed: {}'.format(cmd))
