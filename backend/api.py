@@ -1109,19 +1109,20 @@ class MetasploitCannon(CannonPlug):
                 socketIOServer.sleep(0)
                 # self.client.stop_session(session['session_id'])
         print("SWITCHING TO TESTING MODE FOR POST-EXPLOITATION TESTING")
-        self.test_postexploitation(self.sessions_list)
+        self.test_postexploitation()
         # Terminate Current Console
         socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Cleaning Up", "mode": "Running"})
         socketIOServer.sleep(0)
         self.client.termination(self.client.console_id)
 
 
-    def test_postexploitation(self, sessions: dict):
+    def test_postexploitation(self):
         while True:
             print("Sessions List")
-            print(self.client.get_session_list())
+            sessions = self.client.get_session_list()
+            print(sessions)
             session = int(input("Enter a Session ID: "))
-            self.do_post_exploitation(sessions.get("1", {}))
+            self.do_post_exploitation(sessions.get(session, {}))
 
     def do_post_exploitation(self, session):
         post_results = {
