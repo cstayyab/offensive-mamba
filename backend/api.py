@@ -1167,6 +1167,12 @@ class MetasploitCannon(CannonPlug):
             else:
                 if DEBUG:
                     print(str(result))
+                result = self.client.execute_meterpreter(session, "run " + result[0].decode('utf-8'))
+                if DEBUG:
+                    print("Execute Result: " + str(result))
+                result = self.client.get_meterpreter_result(session_id)
+                if DEBUG:
+                    print("Output: " + str(result))
 
         else:
             # Currently returing but can do something else for non-meterpreter shell
