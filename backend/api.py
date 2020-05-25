@@ -1149,9 +1149,9 @@ class MetasploitCannon(CannonPlug):
             result = self.client.execute_meterpreter(session_id, "run sysinfo")
             time.sleep(1)
             if(result != "Falied"):
-                print("FAILED")
                 print(self.client.get_meterpreter_result(session_id))
             else:
+                print("FAILED")
                 print(self.client.get_meterpreter_result(session_id))
         else:
             # Currently returing but can do something else for non-meterpreter shell
