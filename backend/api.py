@@ -695,7 +695,7 @@ class Msgrpc:
 
     # Execute meterpreter.
     def execute_meterpreter(self, session_id, cmd):
-        ret = self.call('session.meterpreter_run_single', [str(session_id), cmd])
+        ret = self.call('session.meterpreter_script', [str(session_id), cmd])
         try:
             if DEBUG:
                 print(ret)
