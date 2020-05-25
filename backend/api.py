@@ -904,7 +904,7 @@ class MetasploitCannon(CannonPlug):
         # print(nmap_result)
 
         # call get_nmap_xml_contents instead
-        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Fetching Scan Results . . .", "mode": "Running"},namespace="/socket_"+self.username)
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Fetching Scan Results . . .", "mode": "Running"})
         socketIOServer.sleep(0)
         nmap_file_content = self.get_nmap_xml_contents()
         os_name = 'unknown'
@@ -946,7 +946,7 @@ class MetasploitCannon(CannonPlug):
                         info_list.append('unknown')
 
         if len(port_list) == 0:
-            socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "No Open Ports . . .", "mode": "Running"},namespace="/socket_"+self.username)
+            socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "No Open Ports . . .", "mode": "Running"})
             socketIOServer.sleep(0)
             self.util.print_message(WARNING, "No Open Port")
             self.client.termination(self.client.console_id)
@@ -971,7 +971,7 @@ class MetasploitCannon(CannonPlug):
         return port_list, proto_list, info_list, closed_ports
 
     def execute_exploit(self, selected_payload, target, target_info):
-        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . .', "mode": "Running"},namespace="/socket_"+self.username)
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . .', "mode": "Running"})
         socketIOServer.sleep(0)
         option = self.set_options(target_info, target, selected_payload)
         job_id, uuid = self.client.execute_module(
@@ -980,7 +980,7 @@ class MetasploitCannon(CannonPlug):
         if uuid is not None:
             status = self.check_running_module(job_id, uuid)
             if status == False:
-                socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . . [Failed]', "mode": "Running"},namespace="/socket_"+self.username)
+                socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . . [Failed]', "mode": "Running"})
                 socketIOServer.sleep(0)
                 return None
             sessions = self.client.get_session_list()
