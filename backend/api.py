@@ -1121,7 +1121,7 @@ class MetasploitCannon(CannonPlug):
             print("Sessions List")
             print(self.client.get_session_list())
             session = int(input("Enter a Session ID: "))
-            self.do_post_exploitation(session)
+            self.do_post_exploitation(sessions[session])
 
     def do_post_exploitation(self, session):
         post_results = {
