@@ -1162,20 +1162,23 @@ class MetasploitCannon(CannonPlug):
             socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Got Meterpreter Shell", "mode": "Running"})
             socketIOServer.sleep(0)
             post_results['meterpreter'] = True
-            result = self.client.get_session_compatible_module(session_id)
-            if result is None:
+            results = self.client.get_session_compatible_module(session_id)
+            if results is None:
                 if DEBUG:
                     print("Failed")
             else:
                 if DEBUG:
-                    print(str(result))
-                result = self.client.execute_meterpreter(session_id, "run " + result[0].decode('utf-8'))
-                if DEBUG:
-                    print("Execute Result: " + str(result))
-                time.sleep(1.0)
-                result = self.client.get_meterpreter_result(session_id)
-                if DEBUG:
-                    print("Output: " + str(result))
+                    print(str(results))
+                for postmod in results:
+                    postmod = postmod.decode('utf-8')
+                    self.util.print_message(NOTE, "Executing " + postmode)
+                    result = self.client.execute_meterpreter(session_id, "run " + postmod)
+                    if DEBUG:
+                        print("Execute Result: " + str(result))
+                    time.sleep(1.0)
+                    result = self.client.get_meterpreter_result(session_id)
+                    if DEBUG:
+                        print("Output: " + str(result))
 
         else:
             # Currently returing but can do something else for non-meterpreter shell
