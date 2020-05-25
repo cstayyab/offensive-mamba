@@ -1141,6 +1141,8 @@ class MetasploitCannon(CannonPlug):
         if DEBUG:
             print("Session Upgrade Result " + str(result))
         if result == 'success':
+            # TODO NOT THREAD SAFE FIND AN ALTERNATIVE
+            session_id = int(session_id)+1
             socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Got Meterpreter Shell", "mode": "Running"})
             socketIOServer.sleep(0)
             post_results['meterpreter'] = True
