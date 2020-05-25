@@ -728,6 +728,8 @@ class Msgrpc:
         ret = self.call('session.shell_upgrade', [
                         str(session_id), lhost, lport])
         try:
+            if DEBUG:
+                print(ret)
             return ret[b'result'].decode('utf-8')
         except Exception as e:
             self.util.print_exception(e, 'Failed: session.shell_upgrade')
