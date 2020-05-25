@@ -1116,12 +1116,12 @@ class MetasploitCannon(CannonPlug):
         self.client.termination(self.client.console_id)
 
 
-    def test_postexploitation(self, sessions):
+    def test_postexploitation(self, sessions: dict):
         while True:
             print("Sessions List")
             print(self.client.get_session_list())
             session = int(input("Enter a Session ID: "))
-            self.do_post_exploitation(sessions[session])
+            self.do_post_exploitation(sessions.get("1", {}))
 
     def do_post_exploitation(self, session):
         post_results = {
