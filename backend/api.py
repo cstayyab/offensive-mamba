@@ -1170,6 +1170,7 @@ class MetasploitCannon(CannonPlug):
                 result = self.client.execute_meterpreter(session_id, "run " + result[0].decode('utf-8'))
                 if DEBUG:
                     print("Execute Result: " + str(result))
+                time.sleep(1.0)
                 result = self.client.get_meterpreter_result(session_id)
                 if DEBUG:
                     print("Output: " + str(result))
