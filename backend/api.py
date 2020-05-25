@@ -704,6 +704,20 @@ class Msgrpc:
             self.util.print_exception(e, 'Failed: {}'.format(cmd))
             return 'Failed'
 
+    # Get Session Compatible Modules
+    def get_session_compatible_module(self, session_id):
+        ret = self.call('session.compatible_modules', [str(session_id)])
+        try:
+            if DEBUG:
+                print(ret)
+            if b'modules' in ret:
+                return ret[b'modules']
+            else:
+                return None
+        except Exception as e:
+            self.util.print_exception(e, 'Failed: {}'.format(cmd))
+            return None
+
     # Execute single meterpreter.
     def execute_meterpreter_run_single(self, session_id, cmd):
         ret = self.call('session.meterpreter_run_single',
