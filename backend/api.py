@@ -1162,9 +1162,12 @@ class MetasploitCannon(CannonPlug):
             post_results['meterpreter'] = True
             result = self.client.get_session_compatible_module(session_id)
             if result is None:
-                print("Failed")
+                if DEBUG:
+                    print("Failed")
             else:
-                print(str(result))
+                if DEBUG:
+                    print(str(result))
+
         else:
             # Currently returing but can do something else for non-meterpreter shell
             socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Failed to get Meterpreter Shell", "mode": "Running"})
