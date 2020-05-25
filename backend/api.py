@@ -27,6 +27,7 @@ import codecs
 import json
 import re
 from bs4 import BeautifulSoup
+from urllib.parse import parse_qs
 DEBUG = 'DEBUG' in os.environ
 DBHANDLE = DatabaseHandler()
 
@@ -265,7 +266,8 @@ def scan_all_systems(username):
         systems: list = DBHANDLE.get_local_systems(username).get("data", None)
         print("Systems: " + str(systems))
         for system in systems:
-            socketIOServer.emit("statusUpdate", data={"system": system, "statusText": "Started NMAP Scan . . .", "mode": "Running"},namespace="/socket_"+username)
+            socketIOServer.emit("statusUpdate", room=username, data={"system": system, "statusText": "Started NMAP Scan . . .", "mode": "Running"},namespace="/socket_"+username)
+            socketIOServer.sleep(0)
             nmap_response = send_command(username, data={'service': 'nmap', 'ip': system})
             print(nmap_response)
             nmap_file = nmap_response['localfile']
@@ -278,29 +280,6 @@ def scan_all_systems(username):
             msfcannon =  MetasploitCannon(agent_ip, system, username, nmap_file, nmap_file_contents)
             msfcannon.run()
             msfcannon.load_post_exploit_list()
-
-
-frontend_namespaces = {}
-
-class UserNamespaceHandler(socketio.Namespace):
-    def __init__(self, username=""):
-        super().__init__(namespace="/socket_"+username)
-        self.username = username
-    def on_connect(self, sid, environ):
-        if(not (('HTTP_AUTHORIZATION' in environ) and str(environ['HTTP_AUTHORIZATION']).startswith('Bearer '))):
-            socketIOServer.disconnect(sid)
-        token = environ['HTTP_AUTHORIZATION'][7:]
-        auth_data = {}
-        try:
-            auth_data = APIUtils.decrypt_jwt_token(token)
-        except:
-            socketIOServer.emit('connection_failed', json.dumps(
-                {'reason': 'Invalid Token!'}), to=sid)
-            socketIOServer.disconnect(sid)
-        if auth_data['username'] != self.username:
-            socketIOServer.emit('connection_failed', json.dumps(
-                {'reason': 'Invalid Username!'}), to=sid)
-            socketIOServer.disconnect(sid)
 
 @socketIOServer.event
 def connect(sid, environ):
@@ -315,7 +294,11 @@ def connect(sid, environ):
         socketIOServer.emit('connection_failed', json.dumps(
             {'reason': 'Invalid Token!'}), to=sid)
         socketIOServer.disconnect(sid)
-    # TODO: Add Rooms for Reading Status of Metasploit
+    # Check and process frontend request
+    qs = parse_qs(environ['QUERY_STRING'])
+    if ('request' in qs) and ('subscribe' in qs['request']):
+        socketIOServer.enter_room(sid, auth_data['username'])
+        return
     response = DBHANDLE.change_agent_ip(
         auth_data['username'], environ['REMOTE_ADDR'])
     if(response['success'] == False):
@@ -325,10 +308,6 @@ def connect(sid, environ):
         'agent_ip': environ['REMOTE_ADDR'], 'username': auth_data['username']}
     if auth_data['username'] in retrying_clients:
         return
-    if auth_data['username'] not in frontend_namespaces:
-        user_namespace = UserNamespaceHandler(auth_data['username'])
-        socketIOServer.register_namespace(user_namespace)
-        frontend_namespaces[auth_data['username']] = user_namespace
     job = lambda username=auth_data['username']: scan_all_systems(username)
     user_thread = threading.Thread(daemon=False, target=job)
     user_thread.name = "mainthread_" + auth_data['username']
@@ -923,7 +902,8 @@ class MetasploitCannon(CannonPlug):
         # print(nmap_result)
 
         # call get_nmap_xml_contents instead
-        socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": "Fetching Scan Results . . .", "mode": "Running"},namespace="/socket_"+self.username)
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Fetching Scan Results . . .", "mode": "Running"},namespace="/socket_"+self.username)
+        socketIOServer.sleep(0)
         nmap_file_content = self.get_nmap_xml_contents()
         os_name = 'unknown'
         port_list = []
@@ -964,7 +944,8 @@ class MetasploitCannon(CannonPlug):
                         info_list.append('unknown')
 
         if len(port_list) == 0:
-            socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": "No Open Ports . . .", "mode": "Running"},namespace="/socket_"+self.username)
+            socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "No Open Ports . . .", "mode": "Running"},namespace="/socket_"+self.username)
+            socketIOServer.sleep(0)
             self.util.print_message(WARNING, "No Open Port")
             self.client.termination(self.client.console_id)
             raise Exception("No Open Ports!")
@@ -988,7 +969,8 @@ class MetasploitCannon(CannonPlug):
         return port_list, proto_list, info_list, closed_ports
 
     def execute_exploit(self, selected_payload, target, target_info):
-        socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . .', "mode": "Running"},namespace="/socket_"+self.username)
+        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . .', "mode": "Running"},namespace="/socket_"+self.username)
+        socketIOServer.sleep(0)
         option = self.set_options(target_info, target, selected_payload)
         job_id, uuid = self.client.execute_module(
             'exploit', target_info['exploit'], option)
@@ -996,7 +978,8 @@ class MetasploitCannon(CannonPlug):
         if uuid is not None:
             status = self.check_running_module(job_id, uuid)
             if status == False:
-                socketIOServer.emit("statusUpdate", data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . . [Failed]', "mode": "Running"},namespace="/socket_"+self.username)
+                socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Executing ' + target_info['exploit'] +' ('+ selected_payload +') . . . [Failed]', "mode": "Running"},namespace="/socket_"+self.username)
+                socketIOServer.sleep(0)
                 return None
             sessions = self.client.get_session_list()
             key_list = sessions.keys()
