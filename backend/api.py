@@ -298,6 +298,8 @@ def connect(sid, environ):
     qs = parse_qs(environ['QUERY_STRING'])
     if ('request' in qs) and ('subscribe' in qs['request']):
         socketIOServer.enter_room(sid, auth_data['username'])
+        if DEBUG:
+            print(socketIOServer.rooms(sid))
         return
     response = DBHANDLE.change_agent_ip(
         auth_data['username'], environ['REMOTE_ADDR'])
