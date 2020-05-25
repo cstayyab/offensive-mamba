@@ -1171,7 +1171,7 @@ class MetasploitCannon(CannonPlug):
                     print(str(results))
                 for postmod in results:
                     postmod = postmod.decode('utf-8')
-                    self.util.print_message(NOTE, "Executing " + postmode)
+                    self.util.print_message(NOTE, "Executing " + postmod)
                     result = self.client.execute_meterpreter(session_id, "run " + postmod)
                     if DEBUG:
                         print("Execute Result: " + str(result))
