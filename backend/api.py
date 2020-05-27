@@ -1143,7 +1143,7 @@ class MetasploitCannon(CannonPlug):
                 print(str(session) + "\n\n")
                 socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Starting post exploitation on Session " + str(session['session_id']), "mode": "Running"})
                 socketIOServer.sleep(0)
-                # self.do_post_exploitation(session)
+                self.do_post_exploitation(session)
                 socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Terminating Session " + str(session['session_id']), "mode": "Running"})
                 socketIOServer.sleep(0)
                 self.client.stop_session(session['session_id'])
@@ -1266,6 +1266,12 @@ class MetasploitCannon(CannonPlug):
             post_modules_options = self.get_post_exploit_tree(modules, session_id)
             if DEBUG:
                 print(post_modules_options)
+            for module in modules:
+                self.util.print_message(NOTE, "Executing " + str(module))
+                options = post_modules_options[module]
+                self.execute_post_exploit(module, options)
+                ret = self.client.call('console.read', [self.client.console_id])
+                print(ret)
             # if DEBUG:
             #     print(str(results))
             # for postmod in results:
