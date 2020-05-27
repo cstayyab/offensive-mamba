@@ -1240,7 +1240,7 @@ class MetasploitCannon(CannonPlug):
         else:
             # results = map(convert_bytes_string_to_utf8_string, results)
             results = [x.decode('utf-8') for x in results]
-            modules = self.extract_osmatch_module([module[5:] for module in results])
+            modules = [module[5:] for module in results]
             modules = self.os_match_post_modules(modules)
             if DEBUG:
                 print(modules)
