@@ -1047,6 +1047,20 @@ class MetasploitCannon(CannonPlug):
                 return None
         else:
             return None
+    
+    def execute_post_exploit(self, post_exploit, options):
+        option = self.set_post_exploit_options(options)
+        job_id, uuid = self.client.execute_module(
+            'post', post_exploit, option)
+
+        if uuid is not None:
+            status = self.check_running_module(job_id, uuid)
+            if status == False:
+                return None
+        else:
+            return None
+
+
     def temp_run(self):
         self.load_post_exploit_list()
         print(MetasploitCannon.all_post_exploit_list)
@@ -1128,9 +1142,10 @@ class MetasploitCannon(CannonPlug):
                 # self.do_post_exploitation(session)
                 socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Terminating Session " + str(session['session_id']), "mode": "Running"})
                 socketIOServer.sleep(0)
-                # self.client.stop_session(session['session_id'])
-        print("SWITCHING TO TESTING MODE FOR POST-EXPLOITATION TESTING")
-        self.test_postexploitation()
+                self.client.stop_session(session['session_id'])
+        # print("SWITCHING TO TESTING MODE FOR POST-EXPLOITATION TESTING")
+        # self.test_postexploitation()
+        
         # Terminate Current Console
         socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Cleaning Up", "mode": "Running"})
         socketIOServer.sleep(0)
@@ -1337,6 +1352,38 @@ class MetasploitCannon(CannonPlug):
             option['PAYLOAD'] = selected_payload
             option['LPORT'] = self.lport
             option['LHOST'] = self.lhost
+        return option
+
+    def set_post_exploit_options(self, options: dict):
+        key_list = options.keys()
+        option = {}
+        for key in key_list:
+            if options[key]['required'] is True:
+                sub_key_list = options[key].keys()
+                if 'default' in sub_key_list:
+                    if options[key]['user_specify'] == '':
+                        option[key] = options[key]['default']
+                    else:
+                        option[key] = options[key]['user_specify']
+                else:
+                    option[key] = '0'  # Blind Value
+            # Set target path/uri/dir etc.
+            # if len([s for s in self.path_collection if s in key.lower()]) != 0:
+            #     option[key] = target_info['target_path']
+
+        # option['RHOST'] = self.rhost
+        # if self.port_div_symbol in target_info['port']:
+        #     tmp_port = target_info['port'].split(self.port_div_symbol)
+        #     option['RPORT'] = int(tmp_port[0])
+        # else:
+        #     option['RPORT'] = int(target_info['port'])
+
+        # option['TARGET'] = int(target)
+
+        # if selected_payload != '':
+        #     option['PAYLOAD'] = selected_payload
+        option['LPORT'] = self.lport
+        option['LHOST'] = self.lhost
         return option
 
     def scan_the_target(self):
