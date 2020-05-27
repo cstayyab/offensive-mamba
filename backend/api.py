@@ -36,6 +36,7 @@ all_requests = {}
 retrying_clients = []
 socketIOServer = socketio.Server(cors_allowed_origins="*", async_mode='threading', cors_credentials=True)
 
+convert_bytes_string_to_utf8_string = lambda x : x.decode('utf-8')
 
 class BaseView(FlaskView):
     route_base = "/"
@@ -1142,6 +1143,65 @@ class MetasploitCannon(CannonPlug):
             print(self.sessions_list)
             session = int(input("Enter a Session ID: "))
             self.do_post_exploitation(self.sessions_list[session])
+    
+    def get_post_exploit_tree(self, modules):
+        post_exploit_tree = {}
+        for i,post_exploit in enumerate(modules):
+            try:
+                temp_post_exploit_tree = {}
+
+                # Set Exploit
+                use_cmd = 'use post/' + post_exploit + '\n'
+                _ = self.client.send_command(
+                    self.client.console_id, use_cmd, False)
+
+                # Get Options
+                options = self.client.get_module_options('post', post_exploit)
+                if DEBUG:
+                    print("DEBUG: " + str(options))
+                if b'error' in options:
+                    self.util.print_message(WARNING, options[b'error_message'].decode('utf-8'))
+                    continue
+                key_list = options.keys()
+                option = {}
+                # print(key_list)
+                for key in key_list:
+                    sub_option = {}
+                    sub_key_list = options[key].keys()
+                    # print(sub_key_list)
+                    for sub_key in sub_key_list:
+                        if isinstance(options[key][sub_key], list):
+                            # print(options[key][sub_key])
+                            end_option = []
+                            for end_key in options[key][sub_key]:
+                                end_option.append(end_key.decode('utf-8'))
+                            sub_option[sub_key.decode('utf-8')] = end_option
+                        else:
+                            end_option = {}
+                            if isinstance(options[key][sub_key], bytes):
+                                sub_option[sub_key.decode(
+                                    'utf-8')] = options[key][sub_key].decode('utf-8')
+                            else:
+                                sub_option[sub_key.decode(
+                                    'utf-8')] = options[key][sub_key]
+                    sub_option['user_specify'] = ""
+                    option[key.decode('utf-8')] = sub_option
+                
+
+                # Add payloads and targets to exploit tree
+                temp_post_exploit_tree['options'] = option
+                post_exploit_tree[post_exploit] = temp_post_exploit_tree
+                self.util.print_message(OK, '{}/{} post-exploit:{}'.format(str(i + 1),
+                                                                                len(
+                                                                                    modules),
+                                                                                post_exploit))
+            except KeyError:
+                # Skip this Exploit
+                self.util.print_message(WARNING, '{}/{} post-exploit:{}'.format(str(i + 1),
+                                                                                len(
+                                                                                    modules),
+                                                                                post_exploit))
+        return post_exploit_tree
 
     def do_post_exploitation(self, session):
         post_results = {
@@ -1167,18 +1227,26 @@ class MetasploitCannon(CannonPlug):
                 if DEBUG:
                     print("Failed")
             else:
+                # results = map(convert_bytes_string_to_utf8_string, results)
+                results = [x.decode('utf-8') for x in results]
+                modules = [module[:5] for module in results]
                 if DEBUG:
-                    print(str(results))
-                for postmod in results:
-                    postmod = postmod.decode('utf-8')
-                    self.util.print_message(NOTE, "Executing " + postmod)
-                    result = self.client.execute_meterpreter(session_id, "run " + postmod)
-                    if DEBUG:
-                        print("Execute Result: " + str(result))
-                    time.sleep(1.0)
-                    result = self.client.get_meterpreter_result(session_id)
-                    if DEBUG:
-                        print("Output: " + str(result))
+                    print(modules)
+                post_modules_options = self.get_post_exploit_tree(modules)
+                if DEBUG:
+                    print(post_modules_options)
+                # if DEBUG:
+                #     print(str(results))
+                # for postmod in results:
+                #     postmod = postmod.decode('utf-8')
+                #     self.util.print_message(NOTE, "Executing " + postmod)
+                #     result = self.client.execute_meterpreter(session_id, "run " + postmod)
+                #     if DEBUG:
+                #         print("Execute Result: " + str(result))
+                #     time.sleep(1.0)
+                #     result = self.client.get_meterpreter_result(session_id)
+                #     if DEBUG:
+                #         print("Output: " + str(result))
 
         else:
             # Currently returing but can do something else for non-meterpreter shell
