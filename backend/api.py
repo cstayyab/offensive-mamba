@@ -1229,7 +1229,7 @@ class MetasploitCannon(CannonPlug):
             else:
                 # results = map(convert_bytes_string_to_utf8_string, results)
                 results = [x.decode('utf-8') for x in results]
-                modules = [module[:5] for module in results]
+                modules = [module[5:] for module in results]
                 if DEBUG:
                     print(modules)
                 post_modules_options = self.get_post_exploit_tree(modules)
