@@ -1118,6 +1118,8 @@ class MetasploitCannon(CannonPlug):
                             key, exploit, int(target))
                         self.util.print_message(NOTE, "Target Info: {}, Target: {}, Payload: {}".format(
                             target_info, target, payload))
+                        socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Trying to enter using ' + exploit + '(' + payload+ ') on port ' + str(key), "mode": "Running"})
+                        socketIOServer.sleep(0)
                         result = self.execute_exploit(
                             payload, target, target_info)
                         if result is not None:
@@ -1126,6 +1128,8 @@ class MetasploitCannon(CannonPlug):
                                 print(str(exploit_log))
                             self.db_exploitation_logs.append(exploit_log)
                             self.util.print_message(NOTE, "Got a session")
+                            socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": 'Got a Session using ' + exploit + '(' + payload+ ') on port ' + str(key), "mode": "Running"})
+                            socketIOServer.sleep(0)
         
         # Store Data to DB after Exploitation is done
         self.store_to_db()
