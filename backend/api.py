@@ -223,6 +223,7 @@ class AgentView(FlaskView):
 
 latest_updates = {}
 def send_status_update(username, data):
+    latest_updates[username] = {}
     latest_updates[username][data['system']] = data
     socketIOServer.emit("statusUpdate", room=username, data=data)
     socketIOServer.sleep(0)
