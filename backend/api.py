@@ -1393,6 +1393,8 @@ class MetasploitCannon(CannonPlug):
         #     option['PAYLOAD'] = selected_payload
         option['LPORT'] = self.lport
         option['LHOST'] = self.lhost
+        if DEBUG:
+            print(option)
         return option
 
     def scan_the_target(self):
