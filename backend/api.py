@@ -1213,7 +1213,7 @@ class MetasploitCannon(CannonPlug):
             "vm": "",
             "container": ""
         }
-        session_id = session['session_id']
+        session_id = int(session['session_id'])
         socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Trying to upgrade shell to meterpreter", "mode": "Running"})
         socketIOServer.sleep(0)
         result = self.client.upgrade_shell_session(session_id, self.lhost, self.lport)
@@ -1223,7 +1223,9 @@ class MetasploitCannon(CannonPlug):
             # Store that meterpreter shell is possible
             socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Got Meterpreter Shell", "mode": "Running"})
             socketIOServer.sleep(0)
-            post_results['meterpreter'] = True   
+            post_results['meterpreter'] = True
+            session_id += 1
+
         else:
             # Currently returing but can do something else for non-meterpreter shell
             socketIOServer.emit("statusUpdate", room=self.username, data={"system": self.rhost, "statusText": "Failed to get Meterpreter Shell", "mode": "Running"})
@@ -1231,7 +1233,6 @@ class MetasploitCannon(CannonPlug):
             post_results['meterpreter'] = False
         
         # Execute all possible Post Exploit Modules
-        session_id = int(session_id)
         results = self.client.get_session_compatible_module(session_id)
         if results is None:
             if DEBUG:
@@ -1239,7 +1240,8 @@ class MetasploitCannon(CannonPlug):
         else:
             # results = map(convert_bytes_string_to_utf8_string, results)
             results = [x.decode('utf-8') for x in results]
-            modules = [module[5:] for module in results]
+            modules = self.extract_osmatch_module([module[5:] for module in results])
+            modules = self.os_match_post_modules(modules)
             if DEBUG:
                 print(modules)
             post_modules_options = self.get_post_exploit_tree(modules, session_id)
@@ -1769,6 +1771,44 @@ class MetasploitCannon(CannonPlug):
                 osmatch_module_list.append([exploit_info[0], exploit_info[2]])
             elif self.os_real == 15:
                 osmatch_module_list.append([exploit_info[0], exploit_info[2]])
+        return osmatch_module_list
+    
+    def os_match_post_modules(self, modules_list):
+        osmatch_module_list = []
+        for module in modules_list:
+            os_type = module.split('/')[0]
+            if self.os_real == 0 and os_type in ['windows', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 1 and os_type in ['unix', 'freebsd', 'bsdi', 'linux', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 2 and os_type in ['solaris', 'unix', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 3 and os_type in ['osx', 'unix', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 4 and os_type in ['netware', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 5 and os_type in ['linux', 'unix', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 6 and os_type in ['irix', 'unix', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 7 and os_type in ['hpux', 'unix', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 8 and os_type in ['freebsd', 'unix', 'bsdi', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 9 and os_type in ['firefox', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 10 and os_type in ['dialup', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 11 and os_type in ['bsdi', 'unix', 'freebsd', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 12 and os_type in ['apple_ios', 'unix', 'osx', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 13 and os_type in ['android', 'linux', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 14 and os_type in ['aix', 'unix', 'multi']:
+                osmatch_module_list.append(module)
+            elif self.os_real == 15:
+                osmatch_module_list.append(module)
         return osmatch_module_list
 
     def extract_osmatch_payload(self, payload_list):
