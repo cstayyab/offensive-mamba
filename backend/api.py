@@ -1111,8 +1111,8 @@ class MetasploitCannon(CannonPlug):
                     payload_list.append("")
                     # Currently Executing all payload, Here any ML or AI model will be used to select optimal payload
                     for payload in payload_list:
-                        if not (payload == "cmd/unix/reverse"):
-                            continue
+                        # if not (payload == "cmd/unix/reverse"):
+                        #     continue
                         self.client.keep_alive()
                         target_info = self.set_target_info(
                             key, exploit, int(target))
