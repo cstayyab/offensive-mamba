@@ -1268,7 +1268,7 @@ class MetasploitCannon(CannonPlug):
                 print(post_modules_options)
             for module in modules:
                 self.util.print_message(NOTE, "Executing " + str(module))
-                options = post_modules_options[module]
+                options = post_modules_options[module]['options']
                 self.execute_post_exploit(module, options)
                 ret = self.client.call('console.read', [self.client.console_id])
                 print(ret)
