@@ -1060,6 +1060,8 @@ class MetasploitCannon(CannonPlug):
     
     def execute_post_exploit(self, post_exploit, options):
         option = self.set_post_exploit_options(options)
+        if DEBUG:
+            print(option)
         job_id, uuid = self.client.execute_module(
             'post', post_exploit, option)
 
