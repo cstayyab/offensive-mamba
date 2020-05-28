@@ -1206,7 +1206,7 @@ class MetasploitCannon(CannonPlug):
                             else:
                                 sub_option[sub_key.decode(
                                     'utf-8')] = options[key][sub_key]
-                    if key == b'SESSION':
+                    if key == b'SESSION' or key == 'SESSION':
                         sub_option['user_specify'] = session
                     else:
                         sub_option['user_specify'] = ""
