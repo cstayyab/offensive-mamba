@@ -1075,7 +1075,7 @@ class MetasploitCannon(CannonPlug):
         #         return None
         # else:
         #     return None
-        option_string = " ".join([k + "=" + v for k,v in option.items()])
+        option_string = " ".join([k + "=" + str(v) for k,v in option.items()])
         meterpreter_cmd = 'run ' + post_exploit + ' ' + option_string
         if DEBUG:
             print("Executing " + meterpreter_cmd)
