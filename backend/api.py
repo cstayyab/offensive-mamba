@@ -1066,24 +1066,24 @@ class MetasploitCannon(CannonPlug):
             return None
         if DEBUG:
             print(option)
-        # job_id, uuid = self.client.execute_module(
-        #     'post', post_exploit, option)
+        job_id, uuid = self.client.execute_module(
+            'post', post_exploit, option)
 
-        # if uuid is not None:
-        #     status = self.check_running_module(job_id, uuid)
-        #     if status == False:
-        #         return None
-        # else:
-        #     return None
-        option_string = " ".join([k + "=" + str(v) for k,v in option.items()])
-        meterpreter_cmd = 'run ' + post_exploit + ' ' + option_string
-        if DEBUG:
-            print("Executing " + meterpreter_cmd)
-        self.client.execute_meterpreter(option['SESSION'], meterpreter_cmd)
-        time.sleep(1.0)
-        ret = self.client.get_meterpreter_result(option['SESSION'])
-        if DEBUG:
-            print("MEterpreter Output: " + str(ret))
+        if uuid is not None:
+            status = self.check_running_module(job_id, uuid)
+            if status == False:
+                return None
+        else:
+            return None
+        # option_string = " ".join([k + "=" + str(v) for k,v in option.items()])
+        # meterpreter_cmd = 'run ' + post_exploit + ' ' + option_string
+        # if DEBUG:
+        #     print("Executing " + meterpreter_cmd)
+        # self.client.execute_meterpreter(option['SESSION'], meterpreter_cmd)
+        # time.sleep(1.0)
+        # ret = self.client.get_meterpreter_result(option['SESSION'])
+        # if DEBUG:
+        #     print("MEterpreter Output: " + str(ret))
         return ret
         
 
@@ -1286,6 +1286,9 @@ class MetasploitCannon(CannonPlug):
                 self.util.print_message(NOTE, "Executing " + str(module))
                 options = post_modules_options[module]['options']
                 self.execute_post_exploit(module, options)
+                ret = self.client.get_meterpreter_result(option['SESSION'])
+                if DEBUG:
+                    print("MEterpreter Output: " + str(ret))
                 # ret = self.client.call('console.read', [self.client.console_id])
                 # print(ret)
             # if DEBUG:
