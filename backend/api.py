@@ -1060,6 +1060,8 @@ class MetasploitCannon(CannonPlug):
     
     def execute_post_exploit(self, post_exploit, options):
         option = self.set_post_exploit_options(options)
+        if option is False:
+            return None
         if DEBUG:
             print(option)
         job_id, uuid = self.client.execute_module(
@@ -1379,6 +1381,7 @@ class MetasploitCannon(CannonPlug):
                 else:
                     if options[key]['user_specify'] == '':
                         option[key] = '0'  # Blind Value
+                        return False # Don't Execute if all values are not filled
                     else:
                         option[key] = options[key]['user_specify']
             # Set target path/uri/dir etc.
