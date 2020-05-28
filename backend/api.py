@@ -1161,7 +1161,7 @@ class MetasploitCannon(CannonPlug):
         # self.test_postexploitation()
         
         # Terminate Current Console
-        send_status_update(self, username, {"system": self.rhost, "statusText": "Cleaning Up", "mode": "Running"})
+        send_status_update(self.username, {"system": self.rhost, "statusText": "Cleaning Up", "mode": "Running"})
         self.client.termination(self.client.console_id)
 
 
