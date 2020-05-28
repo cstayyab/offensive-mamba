@@ -1079,11 +1079,8 @@ class MetasploitCannon(CannonPlug):
         meterpreter_cmd = 'run ' + post_exploit + ' ' + option_string
         if DEBUG:
             print("Executing " + meterpreter_cmd)
-        self.client.execute_meterpreter_run_single(option['SESSION'], meterpreter_cmd + '\n')
+        ret = self.client.execute_meterpreter_run_single(option['SESSION'], meterpreter_cmd + '\n')
         time.sleep(1.0)
-        ret = self.client.get_meterpreter_result(option['SESSION'])
-        if DEBUG:
-            print("MEterpreter Output: " + str(ret))
         return ret
         
 
@@ -1288,7 +1285,9 @@ class MetasploitCannon(CannonPlug):
                 ret = self.execute_post_exploit(module, options)
                 # ret = self.client.get_meterpreter_result(session_id)
                 if DEBUG:
-                    print("MEterpreter Output: " + str(ret))
+                    print("Meterpreter Output: " + str(ret))
+                ret = self.client.call('session.ring_read', [session_id])
+                print("Ring Read: " + str(ret))
                 # ret = self.client.call('console.read', [self.client.console_id])
                 # print(ret)
             # if DEBUG:
