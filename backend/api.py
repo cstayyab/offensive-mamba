@@ -1398,6 +1398,7 @@ class MetasploitCannon(CannonPlug):
         #     option['PAYLOAD'] = selected_payload
         option['LPORT'] = self.lport
         option['LHOST'] = self.lhost
+        option['RHOSTS'] = self.agent_ip
         if DEBUG:
             print(option)
         return option
