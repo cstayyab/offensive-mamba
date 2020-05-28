@@ -1286,7 +1286,7 @@ class MetasploitCannon(CannonPlug):
                 self.util.print_message(NOTE, "Executing " + str(module))
                 options = post_modules_options[module]['options']
                 self.execute_post_exploit(module, options)
-                ret = self.client.get_meterpreter_result(option['SESSION'])
+                ret = self.client.get_meterpreter_result(session_id)
                 if DEBUG:
                     print("MEterpreter Output: " + str(ret))
                 # ret = self.client.call('console.read', [self.client.console_id])
