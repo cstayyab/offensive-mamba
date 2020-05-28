@@ -641,6 +641,8 @@ class Msgrpc:
     # Execute module.
     def execute_module(self, module_type, module_name, options):
         ret = self.call('module.execute', [module_type, module_name, options])
+        if DEBUG:
+            print(module_name + str(ret))
         try:
             job_id = ret[b'job_id']
             uuid = ret[b'uuid'].decode('utf-8')
