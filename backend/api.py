@@ -1084,7 +1084,7 @@ class MetasploitCannon(CannonPlug):
         # ret = self.client.get_meterpreter_result(option['SESSION'])
         # if DEBUG:
         #     print("MEterpreter Output: " + str(ret))
-        return ret
+        # return ret
         
 
 
