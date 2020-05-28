@@ -1377,7 +1377,10 @@ class MetasploitCannon(CannonPlug):
                     else:
                         option[key] = options[key]['user_specify']
                 else:
-                    option[key] = '0'  # Blind Value
+                    if options[key]['user_specify'] == '':
+                        option[key] = '0'  # Blind Value
+                    else:
+                        option[key] = options[key]['user_specify']
             # Set target path/uri/dir etc.
             # if len([s for s in self.path_collection if s in key.lower()]) != 0:
             #     option[key] = target_info['target_path']
