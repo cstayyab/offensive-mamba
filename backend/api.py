@@ -1079,7 +1079,7 @@ class MetasploitCannon(CannonPlug):
         meterpreter_cmd = 'run ' + post_exploit + ' ' + option_string
         if DEBUG:
             print("Executing " + meterpreter_cmd)
-        self.client.execute_meterpreter_run_single(option['SESSION'], meterpreter_cmd)
+        self.client.execute_meterpreter_run_single(option['SESSION'], meterpreter_cmd + '\n')
         time.sleep(1.0)
         ret = self.client.get_meterpreter_result(option['SESSION'])
         if DEBUG:
