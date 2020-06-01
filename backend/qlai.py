@@ -65,9 +65,9 @@ class QLAI:
             }
             _actions = []
             _actions.append(({
-                "_engine": engine,
-                "_exploit": exploit,
-                "_payload": payload
+                "engine": engine,
+                "exploit": exploit,
+                "payload": payload
             }, reward))
             self.tbl.append({'state': _state, 'actions': _actions})
         else:
