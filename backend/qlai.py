@@ -30,6 +30,8 @@ class QLAI:
         actions = self.get_actions(os, product, version, port)
         self._get_lock()
         if actions is None:
+            if DEBUG:
+                print("Lock Released")
             self.locked = False
             return 0
         else:
@@ -41,12 +43,17 @@ class QLAI:
                 _payload = action[0]['payload']
                 if engine == _engine and exploit == _exploit and payload == _payload:
                     reward = action[1]
+                    if DEBUG:
+                        print("Lock Released")
                     self.locked = False
                     return reward
     
     def _get_lock(self):
+        if DEBUG:
+            print("Lock Requested")
         while self.locked:
             continue
+        print("Locked")
         self.locked = True
 
     def step(self, os, product, version, port, engine, exploit, payload):
@@ -74,6 +81,9 @@ class QLAI:
                 "payload": payload
             }, reward))
             self.tbl.append({'state': _state, 'actions': _actions})
+            if DEBUG:
+                print("Lock Released")
+            self.locked = False
         else:
             for i in range(len(self.tbl)):
                 _state = self.tbl[i]['state']
@@ -88,8 +98,12 @@ class QLAI:
                     _payload = _actions[j][0]['payload']
                     if _os == os and _product == product and _version == version and _port == port and _engine == engine and _exploit == exploit and _payload == payload:
                         self.tbl[i]['actions'][j][1] = reward
+                        if DEBUG:
+                            print("Lock Released")
                         self.locked = False
                         return
+        if DEBUG:
+            print("Lock Released")
         self.locked = False
     
     def save_file(self):
