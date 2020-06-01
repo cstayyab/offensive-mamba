@@ -51,6 +51,10 @@ class QLAI:
                         print("Lock Released")
                     self.locked = False
                     return reward
+            if DEBUG:
+                print("Lock Released")
+            self.locked = False
+            return 0
     
     def _get_lock(self):
         if DEBUG:
