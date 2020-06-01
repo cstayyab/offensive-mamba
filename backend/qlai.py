@@ -1,6 +1,5 @@
 import os
 import json
-
 class QLAI:
     def __init__(self, tblfile="tbl.json"):
         self.locked = True
@@ -91,6 +90,7 @@ class QLAI:
     
     def save_file(self):
         self._get_lock()
+        print(self.tbl)
         with open(self.tblfile, "w") as f:
             json.dump(self.tbl, f)
         self.locked = False
