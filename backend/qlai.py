@@ -14,6 +14,8 @@ class QLAI:
         self.locked = False
         
     def get_actions(self, os, product, version, port):
+        if DEBUG:
+            print("Inside Function: get_actions")
         self._get_lock()
         for row in self.tbl:
             state = row['state']
@@ -27,6 +29,8 @@ class QLAI:
         self.locked = False
         return None
     def get_reward(self, os, product, version, port, engine, exploit, payload):
+        if DEBUG:
+            print("Inside Function: get_reward")
         actions = self.get_actions(os, product, version, port)
         self._get_lock()
         if actions is None:
@@ -50,6 +54,8 @@ class QLAI:
     
     def _get_lock(self):
         if DEBUG:
+            print("Inside Function: _get_lock")
+        if DEBUG:
             print("Lock Requested")
         while self.locked:
             continue
@@ -57,6 +63,8 @@ class QLAI:
         self.locked = True
 
     def step(self, os, product, version, port, engine, exploit, payload):
+        if DEBUG:
+            print("Inside Function: step")
         prev_reward = self.get_reward(os, product, version, port, engine, exploit, payload)
         if prev_reward == -1:
             return False
@@ -65,6 +73,8 @@ class QLAI:
 
         
     def set_reward(self, os, product, version, port, engine, exploit, payload, reward):
+        if DEBUG:
+            print("Inside Function: get_reward")
         actions = self.get_actions(os, product, version, port)
         self._get_lock()
         if actions is None:
@@ -107,6 +117,8 @@ class QLAI:
         self.locked = False
     
     def save_file(self):
+        if DEBUG:
+            print("Inside Function: save_file")
         self._get_lock()
         if DEBUG:
             print(self.tbl)
