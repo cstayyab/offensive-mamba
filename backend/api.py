@@ -28,6 +28,7 @@ import json
 import re
 from bs4 import BeautifulSoup
 from urllib.parse import parse_qs
+from qlai import QLAI
 DEBUG = 'DEBUG' in os.environ
 DBHANDLE = DatabaseHandler()
 
@@ -35,6 +36,8 @@ connected_clients = {}
 all_requests = {}
 retrying_clients = []
 socketIOServer = socketio.Server(cors_allowed_origins="*", async_mode='threading', cors_credentials=True)
+ai = QLAI()
+
 
 convert_bytes_string_to_utf8_string = lambda x : x.decode('utf-8')
 
@@ -1138,18 +1141,26 @@ class MetasploitCannon(CannonPlug):
                         self.client.keep_alive()
                         target_info = self.set_target_info(
                             key, exploit, int(target))
+                        step = ai.step(self.os_real, target_info['prod_name'], target_info['version'], target_info['port'], "Metasploit", exploit, payload)
+                        if (not step):
+                            continue # Skip if AI advised
                         self.util.print_message(NOTE, "Target Info: {}, Target: {}, Payload: {}".format(
                             target_info, target, payload))
                         send_status_update(self.username, {"system": self.rhost, "statusText": 'Trying to enter using ' + exploit + '(' + payload+ ') on port ' + str(key), "mode": "Running"})
                         result = self.execute_exploit(
                             payload, target, target_info)
                         if result is not None:
+                            ai.set_reward(self.os_real, target_info['prod_name'], target_info['version'], target_info['port'], "Metasploit", exploit, payload, 1)
+                            ai.save_file()
                             exploit_log = {"username": self.msgrpc_user, "localip": self.rhost, "exploit": exploit, "payload": payload, "engine": "Metasploit", "port": str(key), "success": True, "result": result}
                             if DEBUG:
                                 print(str(exploit_log))
                             self.db_exploitation_logs.append(exploit_log)
                             self.util.print_message(NOTE, "Got a session")
                             send_status_update(self.username, {"system": self.rhost, "statusText": 'Got a Session using ' + exploit + '(' + payload+ ') on port ' + str(key), "mode": "Running"})
+                        else:
+                            ai.set_reward(self.os_real, target_info['prod_name'], target_info['version'], target_info['port'], "Metasploit", exploit, payload, -1)
+                            ai.save_file()
         
         # Store Data to DB after Exploitation is done
         self.store_to_db()
