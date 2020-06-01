@@ -7,9 +7,11 @@ class QLAI:
         self.tbl = []
         data_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
         self.tblfile = os.path.join(data_dir, tblfile)
+        print("Getting Q-Table from " + self.tblfile)
         if os.path.isfile(self.tblfile):
             with open(self.tblfile, "r") as t:
                 self.tbl = json.load(t)
+        self.locked = False
         
     def get_actions(self, os, product, version, port):
         self._get_lock()
