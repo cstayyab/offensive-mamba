@@ -92,7 +92,7 @@ class QLAI:
     def save_file(self):
         self._get_lock()
         with open(self.tblfile, "w") as f:
-            json.dump(f)
+            json.dump(self.tbl, f)
         self.locked = False
 
         
