@@ -41,6 +41,7 @@ class QLAI:
                 _payload = action[0]['payload']
                 if engine == _engine and exploit == _exploit and payload == _payload:
                     reward = action[1]
+                    self.locked = False
                     return reward
     
     def _get_lock(self):
