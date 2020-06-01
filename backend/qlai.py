@@ -1,5 +1,6 @@
 import os
 import json
+DEBUG = 'DEBUG' in os.environ
 class QLAI:
     def __init__(self, tblfile="tbl.json"):
         self.locked = True
@@ -33,6 +34,8 @@ class QLAI:
             return 0
         else:
             for action in actions:
+                if DEBUG:
+                    print(action)
                 _engine = action[0]['engine']
                 _exploit = action[0]['exploit']
                 _payload = action[0]['payload']
@@ -90,7 +93,8 @@ class QLAI:
     
     def save_file(self):
         self._get_lock()
-        print(self.tbl)
+        if DEBUG:
+            print(self.tbl)
         with open(self.tblfile, "w") as f:
             json.dump(self.tbl, f)
         self.locked = False
