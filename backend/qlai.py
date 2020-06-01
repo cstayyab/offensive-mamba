@@ -57,7 +57,7 @@ class QLAI:
     def set_reward(self, os, product, version, port, engine, exploit, payload, reward):
         actions = self.get_actions(os, product, version, port)
         self._get_lock()
-        if actions in None:
+        if actions is None:
             _state = {
                 'os': os,
                 'product': product,
