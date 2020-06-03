@@ -1,0 +1,6 @@
+mongoengine
+flask_classful
+flask_cors
+python-socketio
+eventlet
+jwt
