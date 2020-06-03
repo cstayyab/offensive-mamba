@@ -1,0 +1,4 @@
+requests
+python-socketio
+python-nmap
+msgpack
